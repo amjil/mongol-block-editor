@@ -1,0 +1,10 @@
+(ns block-editor.utils.selection
+  (:require 
+   ["package:flutter/material.dart" :as m]))
+
+
+(defn set-editing-value [controller new-text]
+  (set! (.-value controller)
+        (m/TextEditingValue.
+         .text new-text
+         .selection (m.TextSelection/collapsed .offset (count new-text)))))

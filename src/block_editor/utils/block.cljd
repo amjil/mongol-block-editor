@@ -1,0 +1,38 @@
+(ns block-editor.utils.block
+  (:require 
+   ["package:uuid/uuid.dart" :as uuid]
+   [block-editor.state :as s]))
+
+(def ^uuid/Uuid uuid-instance (uuid/Uuid.))
+
+(defn reorder-blocks [old-index new-index]
+  (let [blocks (vec @s/ids)
+        block-to-move (nth blocks old-index)
+        ;; Step 1: Remove element from old position
+        without-old (vec (concat (take old-index blocks)
+                                 (drop (inc old-index) blocks)))
+        ;; Step 2: Insert element at new position
+        new-block-ids (vec (concat (take new-index without-old)
+                                   [block-to-move]
+                                   (drop new-index without-old)))]
+    (reset! s/ids new-block-ids)))
+
+
+(defn update-block-content [id text]
+  (swap! s/blocks assoc id text))
+
+(defn create-block []
+  (let [id (.v4 uuid-instance)]
+    (swap! s/ids conj id)
+    (swap! s/blocks assoc id "")))
+
+(defn delete-block [id]
+  (swap! s/ids #(vec (remove (fn [x] (= x id)) %)))
+  (swap! s/blocks dissoc id))
+
+(defn clean []
+  (reset! s/ids [])
+  (reset! s/blocks {}))
+
+(defn init []
+  (create-block))

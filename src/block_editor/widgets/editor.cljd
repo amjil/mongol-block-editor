@@ -1,0 +1,20 @@
+(ns block-editor.widgets.editor
+  (:require
+   ["package:flutter/material.dart" :as m]
+   [cljd.flutter :as f]
+   [block-editor.widgets.reorderable-viewer :as reorderable-view]
+   [block-editor.widgets.keyboard :as keyboard]))
+
+(defn editor []
+  (f/widget
+   (m/SafeArea)
+   (m/Center)
+   (m/Stack
+    .children
+    [(m/Column
+      .children
+      [(m/Expanded
+        .child
+        (reorderable-view/reorderable-view nil))
+       (keyboard/keyboard)])
+     (keyboard/candidates-panel)])))

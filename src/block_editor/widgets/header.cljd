@@ -1,0 +1,13 @@
+(ns block-editor.widgets.header
+  (:require
+   ["package:flutter/material.dart" :as m]
+   [cljd.flutter :as f]))
+
+(defn header [{:keys [size color]}]
+  (f/widget
+   (m/Container 
+    .width size
+    .height size
+    .decoration (m/BoxDecoration. 
+                 .shape m/BoxShape.circle
+                 .color (or color m.Colors/blue)))))

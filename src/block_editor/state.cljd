@@ -1,0 +1,8 @@
+(ns block-editor.state)
+
+;; block ids vector
+(def ids (atom []))
+
+(def blocks (atom {}))
+
+(def current-id (atom nil))

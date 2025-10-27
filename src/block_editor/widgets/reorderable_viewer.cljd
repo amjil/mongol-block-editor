@@ -1,0 +1,77 @@
+(ns block-editor.widgets.reorderable-viewer
+  (:require 
+   ["package:flutter/material.dart" :as m]
+   [cljd.flutter :as f]
+   [block-editor.widgets.richtext-viewer :as richtext-viewer]
+   [block-editor.widgets.text-field :as text-field]
+   [block-editor.widgets.header :as header]
+   [block-editor.widgets.placeholder :as placeholder]
+   [block-editor.utils.selection :as selection]
+   [block-editor.utils.block :as block]
+   [block-editor.state :as state]))
+
+(defn reorderable-view [on-reorder]
+  (when (empty? @state/ids)
+    (block/init))
+  (let [edit-index (atom -1)]
+    (f/widget
+     :get [:state]
+     :managed [controller (m/TextEditingController. .text "")]
+     :let [_ (swap! state assoc
+                    :keyboard/return-mode :single-line
+                    :keyboard/return-callback 
+                    (fn [] (block/create-block)
+                      (let [idx (inc @edit-index)
+                            block-id (get @state/ids idx)]
+                        (swap! state assoc :keyboard/candidates-list [])
+                        (reset! edit-index (inc @edit-index))
+                        (reset! state/current-id block-id)
+                        (selection/set-editing-value controller (->> (nth @state/ids idx)
+                                                                     (get @state/blocks))))))]
+     
+
+     :watch [eidx edit-index
+             ids state/ids
+             blocks state/blocks]
+     (m/ReorderableListView.builder
+      ;; horizontal scroll
+      .scrollDirection m/Axis.horizontal
+      .itemCount (count ids)
+      .onReorder
+      (fn [old-index new-index]
+        ;; Call callback function to handle reordering
+        (when on-reorder
+          (on-reorder old-index new-index)))
+      .itemBuilder
+      (fn [ctx idx]
+        (let [block-id (nth ids idx)
+              block (get blocks block-id)
+              key (m/ValueKey block-id)]
+          (m/GestureDetector
+           .key key
+           .onTap (fn []
+                    (swap! state assoc :keyboard/candidates-list [])
+                    (reset! state/current-id block-id)
+                    (selection/set-editing-value controller (->> (nth @state/ids idx)
+                                                                 (get @state/blocks)))
+                    (reset! edit-index idx))
+           .child
+           (m/Column
+            .mainAxisAlignment m.MainAxisAlignment/spaceAround
+            .children
+            [(header/header {:size 10})
+             (m/Expanded
+              .child
+              (m/Padding
+               .key key
+               .padding (m/EdgeInsets.symmetric .horizontal 8 .vertical 16)
+               .child
+               (if (= eidx idx)
+                 (text-field/text-field {:controller controller
+                                         :on-changed (fn [x]
+                                                       (when (= @state/current-id block-id)
+                                                         (block/update-block-content @state/current-id x)))})
+                 (if (empty? block)
+                   (placeholder/placeholder)
+                   (richtext-viewer/richtext-viewer block {:on-link-tap nil})))))]))))))))
+
