@@ -5,9 +5,10 @@
 
 (defn header [{:keys [size color]}]
   (f/widget
-   (m/Container 
+   (m/Container
+    .margin (m.EdgeInsets/only .left 16)
     .width size
     .height size
-    .decoration (m/BoxDecoration. 
+    .decoration (m/BoxDecoration.
                  .shape m/BoxShape.circle
-                 .color (or color m.Colors/blue)))))
+                 .color (or color m/Colors.blue.shade200)))))

@@ -17,7 +17,6 @@
                                    (drop new-index without-old)))]
     (reset! s/ids new-block-ids)))
 
-
 (defn update-block-content [id text]
   (swap! s/blocks assoc id text))
 

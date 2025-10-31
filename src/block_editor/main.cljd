@@ -24,14 +24,18 @@
     :let [info (merge keyboard-options/keyboard-option
                       {:keyboard/key-cap-border-radius 6
                        :keyboard/font-size 18
+                       :keyboard/key-container-color m.Colors/blueGrey
                        :keyboard/mongol-font-family "OnonSoninSans"})]
                       ;;  :keyboard/mongol-font-family "OyunQaganTig"})]
     :bind {:info info :state (atom keyboard-options/keyboard-state)}
     (m/MaterialApp
      .title "- - -"
      .debugShowCheckedModeBanner false
-     .theme (m/ThemeData .primarySwatch m.Colors/blue
-                        .fontFamily "OyunQaganTig")
+     .themeMode m.ThemeMode/system
+     .theme (m/ThemeData
+             .brightness m/Brightness.dark
+             .primarySwatch m.Colors/blue
+             .fontFamily "OyunQaganTig")
      .home
      (m/Scaffold
       ;;  .appBar (m/AppBar

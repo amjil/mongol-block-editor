@@ -58,6 +58,7 @@
            .child
            (m/Column
             .mainAxisAlignment m.MainAxisAlignment/spaceAround
+            .crossAxisAlignment m.CrossAxisAlignment/start
             .children
             [(header/header {:size 10})
              (m/Expanded
