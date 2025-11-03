@@ -1,4 +1,6 @@
-(ns block-editor.state)
+(ns block-editor.state
+  (:require 
+   ["package:flutter/material.dart" :as m]))
 
 ;; block ids vector
 (def ids (atom []))
@@ -6,3 +8,12 @@
 (def blocks (atom {}))
 
 (def current-id (atom nil))
+
+(def search-result (atom []))
+                          
+(def search-query (atom ""))
+
+(def open-search-box (atom false))
+                          
+
+(def layer-link (m/LayerLink))
