@@ -74,7 +74,9 @@
                                          :on-changed (fn [x]
                                                        (when (= @state/current-id block-id)
                                                          (block/update-block-content @state/current-id x))
-                                                       (selection/cursor-in-double-brackets controller))})
+                                                       (selection/cursor-in-double-brackets controller))
+                                         :on-tap (fn [] 
+                                                   (selection/cursor-in-double-brackets controller))})
                  (if (empty? block)
                    (placeholder/placeholder)
                    (richtext-viewer/richtext-viewer block {:on-link-tap nil})))))]))))))))
