@@ -1,0 +1,61 @@
+(ns block-editor.widgets.search-box
+  (:require
+   ["package:flutter/material.dart" :as m]
+   ["package:mongol/mongol.dart" :as mgl]
+   [cljd.flutter :as f]
+   [block-editor.state :as state]
+   [virtual-keyboard.input-control :as control]))
+
+(defn search-box []
+  (f/widget
+   :context ctx
+   :watch [search-query state/search-query
+           search-result state/search-result
+           open-search-box state/open-search-box]
+   :let [width (-> m/MediaQuery (.of ctx) .-size .-width)
+         height (-> m/MediaQuery (.of ctx) .-size .-height)]
+   (if open-search-box
+     (f/widget
+      (m/Align
+       .alignment m.Alignment/topCenter)
+      (m/Padding
+       .padding (m/EdgeInsets.only .top 16))
+      (m/Container
+       .width (/ width 2)
+       .constraints (m/BoxConstraints.
+                     .maxHeight (/ height 2.5))
+       .decoration (m/BoxDecoration
+                    .color (m/Color.fromARGB 240 40 40 40)
+                    .borderRadius (m/BorderRadius.circular 12)
+                    .boxShadow [(m/BoxShadow
+                                 .color m/Colors.black26
+                                 .blurRadius 20
+                                 .offset (m/Offset. 0 8)
+                                 .spreadRadius 4)]))
+      (m/ClipRRect
+       .borderRadius (m/BorderRadius.circular 12))
+      (m/ListView.builder
+       .scrollDirection m/Axis.horizontal
+       .padding (m/EdgeInsets.only .top 8)
+       .itemCount (inc (count search-result))
+       .itemBuilder (f/build [i]
+                             (m/Container
+                              .padding (m/EdgeInsets.symmetric
+                                        .horizontal 16
+                                        .vertical 10)
+                              .margin (m/EdgeInsets.only
+                                       .right (if (= i (count search-result))
+                                                16
+                                                8))
+                              .decoration (m/BoxDecoration
+                                           .color (m/Color.fromARGB 255 60 60 60)
+                                           .borderRadius (m/BorderRadius.circular 8))
+                              .child
+                              (mgl/MongolText
+                               (if (zero? i)
+                                 (str "New Page: " search-query)
+                                 (nth search-result (dec i)))
+                               .style (m/TextStyle
+                                       .color m/Colors.white
+                                       .fontSize 14))))))
+     (m/SizedBox))))

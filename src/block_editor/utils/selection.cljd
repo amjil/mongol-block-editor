@@ -1,6 +1,7 @@
 (ns block-editor.utils.selection
-  (:require 
-   ["package:flutter/material.dart" :as m]))
+  (:require
+   ["package:flutter/material.dart" :as m]
+   [block-editor.state :as state]))
 
 
 (defn set-editing-value [controller new-text]
@@ -8,3 +9,22 @@
         (m/TextEditingValue.
          .text new-text
          .selection (m.TextSelection/collapsed .offset (count new-text)))))
+         
+(defn cursor-in-double-brackets [controller]
+  (let [text (.-text controller)
+        selection (.-selection controller)]
+    (when (and (.-isValid selection) (.-isCollapsed selection))
+      (let [cursor (.-start selection)
+            open-index (.lastIndexOf text "[[" cursor)
+            close-index (.indexOf text "]]" cursor)
+            inside (and (not= -1 open-index)
+                        (not= -1 close-index)
+                        (< open-index cursor)
+                        (<= cursor close-index))]
+        (if (true? inside)
+          (do
+            (reset! state/open-search-box true)
+            (when (< (+ 2 open-index) close-index)
+              (reset! state/search-query
+                      (.substring text (+ 2 open-index) close-index))))
+          (reset! state/open-search-box false))))))

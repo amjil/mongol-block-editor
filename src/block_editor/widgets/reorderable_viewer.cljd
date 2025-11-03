@@ -58,7 +58,7 @@
            .child
            (m/Column
             .mainAxisAlignment m.MainAxisAlignment/spaceAround
-            .crossAxisAlignment m.CrossAxisAlignment/start
+            .crossAxisAlignment m.CrossAxisAlignment/center
             .children
             [(header/header {:size 10})
              (m/Expanded
@@ -71,7 +71,8 @@
                  (text-field/text-field {:controller controller
                                          :on-changed (fn [x]
                                                        (when (= @state/current-id block-id)
-                                                         (block/update-block-content @state/current-id x)))})
+                                                         (block/update-block-content @state/current-id x))
+                                                       (selection/cursor-in-double-brackets controller))})
                  (if (empty? block)
                    (placeholder/placeholder)
                    (richtext-viewer/richtext-viewer block {:on-link-tap nil})))))]))))))))

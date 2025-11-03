@@ -1,0 +1,46 @@
+(ns block-editor.widgets.toolbar
+  (:require 
+   ["package:flutter/material.dart" :as m]
+   [cljd.flutter :as f]
+   [virtual-keyboard.input-control :as control]
+   [block-editor.widgets.search-box :as search-box]
+   [block-editor.state :as state]))
+   
+(declare link-page-fn)
+
+(defn toolbar [ctx]
+  (f/widget
+   :watch [visible control/visible]
+   (m/Visibility
+    .visible visible)
+   (m/Container
+    .width double/infinity
+    .padding (m/EdgeInsets.symmetric .horizontal 8 .vertical 4))
+   (m/SingleChildScrollView
+    .scrollDirection m/Axis.horizontal)
+   (m/Wrap
+    .alignment m.WrapAlignment/start
+    .spacing 4
+    .children
+    [(m/OutlinedButton
+      .onPressed (fn []
+                   (dart:core/print "toolbar: Bold")
+                   (reset! state/open-search-box true))
+      .child (m/Text "B"))
+     (m/OutlinedButton
+      .onPressed (fn []
+                   (dart:core/print "toolbar: Italic")
+                   (reset! state/open-search-box false))
+      .child (m/Text "I"))
+     (m/OutlinedButton
+      .onPressed (fn []
+                   (dart:core/print "toolbar: Link")
+                   (link-page-fn))
+      .child (m/Text "[[ ]]"))
+     (m/OutlinedButton
+      .onPressed (fn [] (dart:core/print "toolbar: Tag"))
+      .child (m/Text "#"))])))
+      
+(defn link-page-fn []
+  (control/insert-text "[[]]")
+  (control/update-selection -2))

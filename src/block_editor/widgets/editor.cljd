@@ -3,10 +3,13 @@
    ["package:flutter/material.dart" :as m]
    [cljd.flutter :as f]
    [block-editor.widgets.reorderable-viewer :as reorderable-view]
-   [block-editor.widgets.keyboard :as keyboard]))
+   [block-editor.widgets.keyboard :as keyboard]
+   [block-editor.widgets.toolbar :as toolbar]
+   [block-editor.widgets.search-box :as search-box]))
 
 (defn editor []
   (f/widget
+   :context ctx
    (m/SafeArea)
    (m/Center)
    (m/Stack
@@ -16,5 +19,7 @@
       [(m/Expanded
         .child
         (reorderable-view/reorderable-view nil))
+       (toolbar/toolbar ctx)
        (keyboard/keyboard)])
+     (search-box/search-box)
      (keyboard/candidates-panel)])))
