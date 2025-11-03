@@ -46,15 +46,17 @@
       (fn [ctx idx]
         (let [block-id (nth ids idx)
               block (get blocks block-id)
-              key (m/ValueKey block-id)]
+              key (m/ValueKey block-id)
+              detector-fn (fn []
+                            (swap! state assoc :keyboard/candidates-list [])
+                            (reset! state/current-id block-id)
+                            (selection/set-editing-value controller (->> (nth @state/ids idx)
+                                                                         (get @state/blocks)))
+                            (reset! edit-index idx))]
           (m/GestureDetector
            .key key
-           .onTap (fn []
-                    (swap! state assoc :keyboard/candidates-list [])
-                    (reset! state/current-id block-id)
-                    (selection/set-editing-value controller (->> (nth @state/ids idx)
-                                                                 (get @state/blocks)))
-                    (reset! edit-index idx))
+           .onTap detector-fn
+           .onDoubleTap detector-fn
            .child
            (m/Column
             .mainAxisAlignment m.MainAxisAlignment/spaceAround
