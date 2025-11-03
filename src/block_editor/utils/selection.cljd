@@ -9,6 +9,24 @@
         (m/TextEditingValue.
          .text new-text
          .selection (m.TextSelection/collapsed .offset (count new-text)))))
+
+(defn next-content [controller new-line-fn]
+  (let [text (.-text controller)
+        selection (.-selection controller)]
+    (when (and (.-isValid selection) (.-isCollapsed selection))
+      (let [cursor (.-start selection)
+            open-index (.lastIndexOf text "[[" cursor)
+            close-index (.indexOf text "]]" cursor)
+            inside (and (not= -1 open-index)
+                        (not= -1 close-index)
+                        (< open-index cursor)
+                        (<= cursor close-index))]
+        (if (true? inside)
+          (set! (.-value controller)
+                (m/TextEditingValue.
+                 .text text
+                 .selection (m.TextSelection/collapsed .offset (+ 2 close-index))))
+          (new-line-fn))))))
          
 (defn cursor-in-double-brackets [controller]
   (let [text (.-text controller)
