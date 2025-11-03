@@ -87,7 +87,8 @@
        .text (:content span)
        .style (m/TextStyle
                .color (-> theme .-colorScheme .-primary)
-               .fontSize 16
+               .fontSize 18
+               .height 1.5
                .decoration m/TextDecoration.overline
                .fontFamily "OyunQaganTig"
                .fontWeight m/FontWeight.w500)
@@ -101,12 +102,12 @@
       (m/TextSpan
        .text tag
        .style (m/TextStyle
-               .fontSize 20
+               .fontSize 18
+               .height 1.5
                .fontFamily "OyunQaganTig"
                .fontWeight m/FontWeight.w500
                .backgroundColor (-> theme .-colorScheme .-surface)
                .decorationStyle m/TextDecorationStyle.solid
-               .height 2.0
                .decoration m/TextDecoration.overline
                .color (-> theme .-colorScheme .-primary))
        .recognizer recognizer)))
@@ -115,7 +116,8 @@
   (m/TextSpan
    .text text
    .style (m/TextStyle
-           .fontSize 16
+           .fontSize 18
+           .height 1.5
            .fontFamily "OyunQaganTig"
            .fontWeight m/FontWeight.bold
            .color (-> theme .-colorScheme .-primary))))
@@ -124,7 +126,8 @@
   (m/TextSpan
    .text text
    .style (m/TextStyle
-           .fontSize 16
+           .fontSize 18    
+           .height 1.5
            .fontFamily "OyunQaganTig"
            .fontStyle m/FontStyle.italic
            .color (-> theme .-colorScheme .-primary))))
@@ -133,7 +136,8 @@
   (m/TextSpan
    .text text
    .style (m/TextStyle
-           .fontSize 16
+           .fontSize 18
+           .height 1.5
            .fontFamily "OyunQaganTig"
            .fontWeight m/FontWeight.bold
            .fontStyle m/FontStyle.italic
