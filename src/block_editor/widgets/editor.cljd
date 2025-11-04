@@ -2,15 +2,20 @@
   (:require
    ["package:flutter/material.dart" :as m]
    [cljd.flutter :as f]
+   [virtual-keyboard.keyboard-state :as keyboard-state]
    [block-editor.widgets.reorderable-viewer :as reorderable-view]
    [block-editor.widgets.keyboard :as keyboard]
    [block-editor.widgets.toolbar :as toolbar]
    [block-editor.widgets.search-box :as search-box]
-   [block-editor.state :as state]))
+   [block-editor.state :as state]
+   [block-editor.utils.block :as block]))
 
 (defn editor [block-ids blocks]
   (reset! state/ids block-ids)
   (reset! state/blocks blocks)
+  (swap! keyboard-state/state assoc :keyboard/return-mode :single-line)
+  (when (empty? @state/ids)
+    (block/init))
   (f/widget
    (m/SafeArea)
    (m/Center)

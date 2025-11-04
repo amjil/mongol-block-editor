@@ -2,6 +2,7 @@
   (:require
    ["package:flutter/material.dart" :as m]
    [virtual-keyboard.keyboard-action :as action]
+   [virtual-keyboard.input-control :as control]
    [block-editor.utils.block :as block]
    [block-editor.state :as state]))
 
@@ -26,24 +27,24 @@
         [inside open-index close-index])
       [false -1 -1])))
 
-(defn next-block [controller edit-index]
+(defn next-block []
   (block/create-block)
-  (let [idx (inc @edit-index)
+  (let [idx (inc @state/edit-index)
         block-id (get @state/ids idx)
         new-content (get @state/blocks block-id)]
     (action/clear-candidates)
-    (reset! edit-index (inc @edit-index))
+    (reset! state/edit-index (inc @state/edit-index))
     (reset! state/current-id block-id)
-    (set-editing-value controller new-content (count new-content))))
+    (control/reset-text new-content)))
 
-(defn next-content [controller edit-index]
-  (let [[inside _ close-index] (is-cursor-in-double-brackets controller)
-        text (.-text controller)]
+(defn next-content []
+  (let [editing-value @control/editing-value
+        [inside _ close-index] (is-cursor-in-double-brackets editing-value)]
     (if (true? inside)
       (do
-        (set-editing-value controller text (+ 2 close-index))
+        (control/update-selection (+ 2 close-index))
         (reset! state/open-search-box false))
-      (next-block controller edit-index))))
+      (next-block))))
 
 (defn run-search-index [text open-index close-index]
   (reset! state/open-search-box true)
@@ -58,14 +59,15 @@
       (run-search-index text open-index close-index)
       (reset! state/open-search-box false))))
 
-(defn on-click-reorderable-item [controller idx edit-index]
+(defn on-click-reorderable-item [controller idx]
   (let [block-id (nth @state/ids idx)
         new-content (get @state/blocks block-id)]
     (action/clear-candidates)
     (set-editing-value controller new-content (count new-content))
-    (reset! edit-index idx)))
+    (reset! state/edit-index idx)))
 
 (defn on-update [controller idx text]
   (let [block-id (nth @state/ids idx)]
-    (block/update-block-content block-id text))
+    (when (= idx @state/edit-index)
+      (block/update-block-content block-id text)))
   (cursor-in-double-brackets controller))

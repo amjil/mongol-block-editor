@@ -2,7 +2,6 @@
   (:require
    ["package:flutter/material.dart" :as m]
    [cljd.flutter :as f]
-   [virtual-keyboard.keyboard-state :as keyboard-state]
    [block-editor.widgets.richtext-viewer :as richtext-viewer]
    [block-editor.widgets.text-field :as text-field]
    [block-editor.widgets.header :as header]
@@ -12,50 +11,43 @@
    [block-editor.state :as state]))
 
 (defn reorderable-view []
-  (when (empty? @state/ids)
-    (block/init))
-  (let [edit-index (atom -1)]
-    (f/widget
-     :managed [controller (m/TextEditingController. .text "")]
-     :let [_ (swap! keyboard-state/state assoc
-                    :keyboard/return-mode :single-line
-                    :keyboard/return-callback
-                    (partial selection/next-content controller edit-index))]
-     :watch [eidx edit-index
-             ids state/ids
-             blocks state/blocks]
-     (m/ReorderableListView.builder
-      ;; horizontal scroll
-      .scrollDirection m/Axis.horizontal
-      .itemCount (count ids)
-      .onReorder block/reorder-blocks
-      .itemBuilder
-      (fn [ctx idx]
-        (let [block-id (nth ids idx)
-              block (get blocks block-id)
-              key (m/ValueKey block-id)]
-          (m/GestureDetector
-           .key key
-           .onTap (partial selection/on-click-reorderable-item controller idx edit-index)
-           .onDoubleTap (partial selection/on-click-reorderable-item controller idx edit-index)
-           .child
-           (m/Column
-            .mainAxisAlignment m.MainAxisAlignment/spaceAround
-            .crossAxisAlignment m.CrossAxisAlignment/center
-            .children
-            [(header/header {:size 10})
-             (m/Expanded
-              .child
-              (m/Padding
-               .key key
-               .padding (m/EdgeInsets.symmetric .horizontal 8 .vertical 16)
-               .child
-               (if (= eidx idx)
-                 (text-field/text-field {:controller controller
-                                         :on-changed (partial selection/on-update controller idx)
-                                         :on-tap (fn []
-                                                   (selection/cursor-in-double-brackets controller))})
-                 (if (empty? block)
-                   (placeholder/placeholder)
-                   (richtext-viewer/richtext-viewer block {:on-link-tap nil})))))]))))))))
+  (f/widget
+   :watch [eidx state/edit-index
+           ids state/ids
+           blocks state/blocks]
+   :managed [controller (m/TextEditingController. .text "")]
+   (m/ReorderableListView.builder
+    ;; horizontal scroll
+    .scrollDirection m/Axis.horizontal
+    .itemCount (count ids)
+    .onReorder block/reorder-blocks
+    .itemBuilder
+    (fn [ctx idx]
+      (let [block-id (nth ids idx)
+            block (get blocks block-id)
+            key (m/ValueKey block-id)]
+        (m/GestureDetector
+         .key key
+         .onTap (partial selection/on-click-reorderable-item controller idx)
+         .onDoubleTap (partial selection/on-click-reorderable-item controller idx)
+         .child
+         (m/Column
+          .mainAxisAlignment m.MainAxisAlignment/spaceAround
+          .crossAxisAlignment m.CrossAxisAlignment/center
+          .children
+          [(header/header {:size 10})
+           (m/Expanded
+            .child
+            (m/Padding
+             .key key
+             .padding (m/EdgeInsets.symmetric .horizontal 8 .vertical 16)
+             .child
+             (if (= eidx idx)
+               (text-field/text-field {:controller controller
+                                       :on-changed (partial selection/on-update controller idx)
+                                       :on-tap (fn []
+                                                 (selection/cursor-in-double-brackets controller))})
+               (if (empty? block)
+                 (placeholder/placeholder)
+                 (richtext-viewer/richtext-viewer block {:on-link-tap nil})))))])))))))
 
