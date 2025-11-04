@@ -1,6 +1,7 @@
 (ns block-editor.utils.block
   (:require 
    ["package:uuid/uuid.dart" :as uuid]
+   [clojure.string :as str]
    [block-editor.state :as s]))
 
 (def ^uuid/Uuid uuid-instance (uuid/Uuid.))
@@ -16,6 +17,11 @@
                                    [block-to-move]
                                    (drop new-index without-old)))]
     (reset! s/ids new-block-ids)))
+
+(defn sort-blocks-by-ids [ids blocks]
+  (let [block-ids ids 
+        indexd-map (zipmap block-ids (range))]
+    (vec (sort-by (fn [block] (get indexd-map (.-blockId block))) blocks))))
 
 (defn update-block-content [id text]
   (swap! s/blocks assoc id text))

@@ -11,7 +11,7 @@
    [block-editor.utils.block :as block]
    [block-editor.state :as state]))
 
-(defn reorderable-view [on-reorder]
+(defn reorderable-view []
   (when (empty? @state/ids)
     (block/init))
   (let [edit-index (atom -1)]
@@ -28,11 +28,7 @@
       ;; horizontal scroll
       .scrollDirection m/Axis.horizontal
       .itemCount (count ids)
-      .onReorder
-      (fn [old-index new-index]
-        ;; Call callback function to handle reordering
-        (when on-reorder
-          (on-reorder old-index new-index)))
+      .onReorder block/reorder-blocks
       .itemBuilder
       (fn [ctx idx]
         (let [block-id (nth ids idx)

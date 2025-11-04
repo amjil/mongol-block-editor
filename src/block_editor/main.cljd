@@ -5,10 +5,8 @@
    [virtual-keyboard.options :as keyboard-options]
    [virtual-keyboard.input-control :as control]
    [virtual-keyboard.keyboard-candidates :as kc]
-   [virtual-keyboard.keyboard-state :as state]
    [virtual-keyboard.zip-utils :as zip-utils]
-   [block-editor.widgets.editor :as editor]
-   [block-editor.utils.span :as span]))
+   [block-editor.widgets.editor :as editor]))
 
 (defn main []
   ;; Ensure Flutter binding is initialized
@@ -43,7 +41,7 @@
       ;;  .appBar (m/AppBar
       ;;           .title (m/Text "Mongolian Search Bar"))
       .body
-      (editor/editor)
+      (editor/editor [] {})
       ;; (m/Text "abc")
       ;; (m/Center
       ;;  .child (mgl/MongolText
