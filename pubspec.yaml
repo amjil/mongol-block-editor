@@ -72,6 +72,7 @@ flutter:
     - assets/data.zip
     - assets/next.zip
     - assets/fonts/OyunQaganTig.ttf
+    - assets/fonts/OnonSoninSans.ttf
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

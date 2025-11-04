@@ -19,7 +19,7 @@
       [(m/Expanded
         .child
         (reorderable-view/reorderable-view nil))
-       (toolbar/toolbar ctx)
+       (toolbar/toolbar)
        (keyboard/keyboard)])
      (search-box/search-box)
      (keyboard/candidates-panel)])))

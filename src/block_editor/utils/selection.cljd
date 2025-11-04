@@ -1,19 +1,21 @@
 (ns block-editor.utils.selection
   (:require
    ["package:flutter/material.dart" :as m]
+   [virtual-keyboard.keyboard-action :as action]
+   [block-editor.utils.block :as block]
    [block-editor.state :as state]))
 
 
-(defn set-editing-value [controller new-text]
+(defn set-editing-value [controller new-text offset]
   (set! (.-value controller)
         (m/TextEditingValue.
          .text new-text
-         .selection (m.TextSelection/collapsed .offset (count new-text)))))
+         .selection (m.TextSelection/collapsed .offset offset))))
 
-(defn next-content [controller new-line-fn]
+(defn is-cursor-in-double-brackets [controller]
   (let [text (.-text controller)
         selection (.-selection controller)]
-    (when (and (.-isValid selection) (.-isCollapsed selection))
+    (if (and (.-isValid selection) (.-isCollapsed selection))
       (let [cursor (.-start selection)
             open-index (.lastIndexOf text "[[" cursor)
             close-index (.indexOf text "]]" cursor)
@@ -21,28 +23,50 @@
                         (not= -1 close-index)
                         (< open-index cursor)
                         (<= cursor close-index))]
-        (if (true? inside)
-          (set! (.-value controller)
-                (m/TextEditingValue.
-                 .text text
-                 .selection (m.TextSelection/collapsed .offset (+ 2 close-index))))
-          (new-line-fn))))))
+        [inside open-index close-index])
+      [false -1 -1])))
+
+(defn next-block [controller edit-index]
+  (block/create-block)
+  (let [idx (inc @edit-index)
+        block-id (get @state/ids idx)
+        new-content (get @state/blocks block-id)]
+    (action/clear-candidates)
+    (reset! edit-index (inc @edit-index))
+    (reset! state/current-id block-id)
+    (set-editing-value controller new-content (count new-content))))
+
+(defn next-content [controller edit-index]
+  (let [[inside _ close-index] (is-cursor-in-double-brackets controller)
+        text (.-text controller)]
+    (if (true? inside)
+      (do
+        (set-editing-value controller text (+ 2 close-index))
+        (reset! state/open-search-box false))
+      (next-block controller edit-index))))
+
+(defn run-search-index [text open-index close-index]
+  (reset! state/open-search-box true)
+  (when (< (+ 2 open-index) close-index)
+    (reset! state/search-query
+            (.substring text (+ 2 open-index) close-index))))
          
 (defn cursor-in-double-brackets [controller]
   (let [text (.-text controller)
-        selection (.-selection controller)]
-    (when (and (.-isValid selection) (.-isCollapsed selection))
-      (let [cursor (.-start selection)
-            open-index (.lastIndexOf text "[[" cursor)
-            close-index (.indexOf text "]]" cursor)
-            inside (and (not= -1 open-index)
-                        (not= -1 close-index)
-                        (< open-index cursor)
-                        (<= cursor close-index))]
-        (if (true? inside)
-          (do
-            (reset! state/open-search-box true)
-            (when (< (+ 2 open-index) close-index)
-              (reset! state/search-query
-                      (.substring text (+ 2 open-index) close-index))))
-          (reset! state/open-search-box false))))))
+        [inside open-index close-index] (is-cursor-in-double-brackets controller)]
+    (if (true? inside)
+      (run-search-index text open-index close-index)
+      (reset! state/open-search-box false))))
+
+(defn on-click-reorderable-item [controller idx edit-index]
+  (let [block-id (nth @state/ids idx)
+        new-content (get @state/blocks block-id)]
+    (action/clear-candidates)
+    (set-editing-value controller new-content (count new-content))
+    (reset! edit-index idx)))
+
+(defn on-update [controller idx text]
+  (let [block-id (nth @state/ids idx)]
+  (when (= @state/current-id block-id)
+    (block/update-block-content block-id text)))
+  (cursor-in-double-brackets controller))
