@@ -13,7 +13,6 @@
 (defn editor [block-ids blocks]
   (reset! state/ids block-ids)
   (reset! state/blocks blocks)
-  (swap! keyboard-state/state assoc :keyboard/return-mode :single-line)
   (when (empty? @state/ids)
     (block/init))
   (f/widget
