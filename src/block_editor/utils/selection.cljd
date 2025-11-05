@@ -42,7 +42,7 @@
         [inside _ close-index] (is-cursor-in-double-brackets editing-value)]
     (if (true? inside)
       (do
-        (control/update-selection (+ 2 close-index))
+        (control/update-selection 2)
         (reset! state/open-search-box false))
       (next-block))))
 
