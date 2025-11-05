@@ -2,7 +2,6 @@
   (:require
    ["package:flutter/material.dart" :as m]
    [cljd.flutter :as f]
-   [virtual-keyboard.keyboard-state :as keyboard-state]
    [block-editor.widgets.reorderable-viewer :as reorderable-view]
    [block-editor.widgets.keyboard :as keyboard]
    [block-editor.widgets.toolbar :as toolbar]
@@ -10,9 +9,7 @@
    [block-editor.state :as state]
    [block-editor.utils.block :as block]))
 
-(defn editor [block-ids blocks]
-  (reset! state/ids block-ids)
-  (reset! state/blocks blocks)
+(defn editor []
   (when (empty? @state/ids)
     (block/init))
   (f/widget
