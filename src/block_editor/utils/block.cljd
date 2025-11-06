@@ -36,6 +36,7 @@
   (swap! s/blocks dissoc id))
 
 (defn clean []
+  (reset! s/edit-index -1)
   (reset! s/ids [])
   (reset! s/blocks {}))
 
