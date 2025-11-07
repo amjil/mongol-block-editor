@@ -8,36 +8,77 @@
    
 (declare link-page-fn)
 
+(def button-style
+  (m/OutlinedButton.styleFrom
+   .backgroundColor (m/Color.fromARGB 255 48 48 48)
+   .foregroundColor m/Colors.white
+   .side (m/BorderSide
+          .color (m/Color.fromARGB 120 255 255 255)
+          .width 1)
+   .shape (m/RoundedRectangleBorder
+           .borderRadius (m/BorderRadius.circular 4.5))
+   .padding (m/EdgeInsets.symmetric .horizontal 6.5 .vertical 4.5)
+   .textStyle (m/TextStyle
+               .fontSize 12
+               .fontWeight m/FontWeight.w600
+               .letterSpacing 0.34)))
+
+(defn toolbar-action-button [{:keys [display tooltip on-press]}]
+  (m/Padding
+   .padding (m/EdgeInsets.symmetric .horizontal 4)
+   .child
+   (m/Tooltip
+    .message tooltip
+    .verticalOffset 24
+    .preferBelow false
+    .child
+    (m/OutlinedButton
+     .style button-style
+     .onPressed on-press
+     .child (m/Text display)))))
+
 (defn toolbar []
-  (keyboard/toolbar
-   (f/widget
-    (m/Container
-     .width double/infinity
-     .padding (m/EdgeInsets.symmetric .horizontal 8 .vertical 4))
-    (m/SingleChildScrollView
-     .scrollDirection m/Axis.horizontal)
-    (m/Wrap
-     .alignment m.WrapAlignment/start
-     .spacing 4
-     .children
-     [(m/OutlinedButton
-       .onPressed (fn []
-                    (dart:core/print "toolbar: Bold")
-                    (reset! state/open-search-box true))
-       .child (m/Text "B"))
-      (m/OutlinedButton
-       .onPressed (fn []
-                    (dart:core/print "toolbar: Italic")
-                    (reset! state/open-search-box false))
-       .child (m/Text "I"))
-      (m/OutlinedButton
-       .onPressed (fn []
-                    (dart:core/print "toolbar: Link")
-                    (link-page-fn))
-       .child (m/Text "[[ ]]"))
-      (m/OutlinedButton
-       .onPressed (fn [] (dart:core/print "toolbar: Tag"))
-       .child (m/Text "#"))]))))
+  (let [actions [{:display "B"
+                  :tooltip "Bold"
+                  :on-press (fn []
+                              (dart:core/print "toolbar: Bold")
+                              (reset! state/open-search-box true))}
+                 {:display "I"
+                  :tooltip "Italic"
+                  :on-press (fn []
+                              (dart:core/print "toolbar: Italic")
+                              (reset! state/open-search-box false))}
+                 {:display "[[ ]]"
+                  :tooltip "Insert link"
+                  :on-press (fn []
+                              (dart:core/print "toolbar: Link")
+                              (link-page-fn))}
+                 {:display "#"
+                  :tooltip "Insert tag"
+                  :on-press (fn [] (dart:core/print "toolbar: Tag"))}]]
+    (keyboard/toolbar
+     (f/widget
+      :context ctx
+      :let [width (-> m/MediaQuery (.of ctx) .-size .-width)]
+      (m/Container
+       .width width
+       .decoration (m/BoxDecoration
+                    .color (m/Color.fromARGB 255 34 34 34)
+                    .borderRadius (m/BorderRadius.circular 12)
+                    .boxShadow [(m/BoxShadow
+                                 .color (m/Color.fromARGB 120 0 0 0)
+                                 .blurRadius 18
+                                 .offset (m/Offset. 0 6)
+                                 .spreadRadius 1)]))
+      (m/Padding
+       .padding (m/EdgeInsets.symmetric .horizontal 12 .vertical 3))
+      (m/SingleChildScrollView
+       .scrollDirection m/Axis.horizontal)
+      (m/Wrap
+       .alignment m.WrapAlignment/start
+       .spacing 6
+       .runSpacing 4
+       .children (mapv toolbar-action-button actions))))))
       
 (defn link-page-fn []
   (control/insert-text "[[]]")

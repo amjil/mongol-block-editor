@@ -60,7 +60,7 @@
         (cond
           (nil? result) nil
           (instance? async/Future result) (.then result (fn [data]
-                                                        (state/set-search-results! data)))
+                                                          (state/set-search-results! data)))
           :else (state/set-search-results! result))))))
          
 (defn cursor-in-double-brackets [controller]
