@@ -1,6 +1,7 @@
 (ns block-editor.utils.selection
   (:require
    ["package:flutter/material.dart" :as m]
+   ["dart:async" :as async]
    [virtual-keyboard.keyboard-action :as action]
    [virtual-keyboard.input-control :as control]
    [block-editor.utils.block :as block]
@@ -39,7 +40,7 @@
 
 (defn next-content []
   (let [editing-value @control/editing-value
-        [inside _ close-index] (is-cursor-in-double-brackets editing-value)]
+        [inside _ _] (is-cursor-in-double-brackets editing-value)]
     (if (true? inside)
       (do
         (control/update-selection 2)
@@ -48,16 +49,28 @@
 
 (defn run-search-index [text open-index close-index]
   (reset! state/open-search-box true)
-  (when (< (+ 2 open-index) close-index)
-    (reset! state/search-query
-            (.substring text (+ 2 open-index) close-index))))
+  (let [query (if (< (+ 2 open-index) close-index)
+                (.substring text (+ 2 open-index) close-index)
+                "")]
+    (reset! state/search-query query)
+    ;; (state/set-search-results! [])
+    (when-let [handler @state/search-handler]
+      (let [result (handler {:query query
+                             :set-results state/set-search-results!})]
+        (cond
+          (nil? result) nil
+          (instance? async/Future result) (.then result (fn [data]
+                                                        (state/set-search-results! data)))
+          :else (state/set-search-results! result))))))
          
 (defn cursor-in-double-brackets [controller]
   (let [text (.-text controller)
         [inside open-index close-index] (is-cursor-in-double-brackets controller)]
     (if (true? inside)
       (run-search-index text open-index close-index)
-      (reset! state/open-search-box false))))
+      (do
+        (reset! state/open-search-box false)
+        (state/clear-search!)))))
 
 (defn on-click-reorderable-item [controller idx]
   (let [block-id (nth @state/ids idx)

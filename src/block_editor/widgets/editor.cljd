@@ -9,20 +9,24 @@
    [block-editor.state :as state]
    [block-editor.utils.block :as block]))
 
-(defn editor []
-  (when (empty? @state/ids)
-    (block/init))
-  (f/widget
-   (m/SafeArea)
-   (m/Center)
-   (m/Stack
-    .children
-    [(m/Column
-      .children
-      [(m/Expanded
-        .child
-        (reorderable-view/reorderable-view))
-       (toolbar/toolbar)
-       (keyboard/keyboard)])
-     (search-box/search-box)
-     (keyboard/candidates-panel)])))
+(defn editor
+  ([] (editor {}))
+  ([{:keys [on-search]}]
+   (state/register-search-handler!
+    (when (fn? on-search) on-search))
+   (when (empty? @state/ids)
+     (block/init))
+   (f/widget
+    (m/SafeArea)
+    (m/Center)
+    (m/Stack
+     .children
+     [(m/Column
+       .children
+       [(m/Expanded
+         .child
+         (reorderable-view/reorderable-view))
+        (toolbar/toolbar)
+        (keyboard/keyboard)])
+      (search-box/search-box)
+      (keyboard/candidates-panel)]))))

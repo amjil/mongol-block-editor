@@ -1,6 +1,4 @@
-(ns block-editor.state
-  (:require 
-   ["package:flutter/material.dart" :as m]))
+(ns block-editor.state)
 
 ;; block ids vector
 (def ids (atom []))
@@ -18,4 +16,20 @@
 (def edit-index (atom -1))
                           
 
-(def layer-link (m/LayerLink))
+(def search-handler (atom nil))
+
+(defn register-search-handler! [handler]
+  (reset! search-handler handler))
+
+(defn set-search-results! [results]
+  (let [normalized (cond
+                     (nil? results) []
+                     (vector? results) results
+                     :else (if-let [s (seq results)]
+                             (vec s)
+                             (vec [results])))]
+    (reset! search-result normalized)))
+
+(defn clear-search! []
+  (reset! search-query "")
+  (reset! search-result []))

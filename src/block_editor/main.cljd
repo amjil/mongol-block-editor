@@ -41,7 +41,7 @@
       ;;  .appBar (m/AppBar
       ;;           .title (m/Text "Mongolian Search Bar"))
       .body
-      (editor/editor [] {})
+      (editor/editor)
       ;; (m/Text "abc")
       ;; (m/Center
       ;;  .child (mgl/MongolText
