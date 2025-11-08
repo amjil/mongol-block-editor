@@ -53,15 +53,18 @@
                 (.substring text (+ 2 open-index) close-index)
                 "")]
     (reset! state/search-query query)
-    ;; (state/set-search-results! [])
-    (when-let [handler @state/search-handler]
-      (let [result (handler {:query query
-                             :set-results state/set-search-results!})]
-        (cond
-          (nil? result) nil
-          (instance? async/Future result) (.then result (fn [data]
-                                                          (state/set-search-results! data)))
-          :else (state/set-search-results! result))))))
+    (state/set-search-results! [])
+    (when (not-empty query)
+      (when-let [handler @state/search-handler]
+        (let [result (handler {:query query
+                               :set-results state/set-search-results!})]
+          (cond
+            (nil? result) nil
+            (instance? async/Future result) (.then result (fn [data]
+                                                            (when-not (empty? data)
+                                                              (let [data (map #(.-data %) data)]
+                                                                (state/set-search-results! data)))))
+            :else (state/set-search-results! result)))))))
          
 (defn cursor-in-double-brackets [controller]
   (let [text (.-text controller)

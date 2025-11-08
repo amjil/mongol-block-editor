@@ -12,8 +12,8 @@
 (defn editor
   ([] (editor {}))
   ([{:keys [on-search]}]
-   (state/register-search-handler!
-    (when (fn? on-search) on-search))
+   (when (fn? on-search)
+     (state/register-search-handler! on-search))
    (when (empty? @state/ids)
      (block/init))
    (f/widget

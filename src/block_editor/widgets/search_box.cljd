@@ -36,7 +36,9 @@
       (m/ListView.builder
        .scrollDirection m/Axis.horizontal
        .padding (m/EdgeInsets.only .top 8)
-       .itemCount (inc (count search-result))
+       .itemCount (if (some #{search-query} (map #(get % "title") search-result))
+                    (count search-result)
+                    (inc (count search-result)))
        .itemBuilder (f/build [i]
                              (m/Container
                               .padding (m/EdgeInsets.symmetric
@@ -51,9 +53,12 @@
                                            .borderRadius (m/BorderRadius.circular 8))
                               .child
                               (mgl/MongolText
-                               (if (zero? i)
-                                 (str "New Page: " search-query)
-                                 (nth search-result (dec i)))
+                               (if (some #{search-query} (map #(get % "title") search-result))
+                                 (get (nth search-result i) "title")
+                                 (if (zero? i)
+                                   (str "New Page: " search-query)
+                                   (or (get (nth search-result (dec i)) "title") "No title")))
+
                                .style (m/TextStyle
                                        .color m/Colors.white
                                        .fontSize 14))))))
