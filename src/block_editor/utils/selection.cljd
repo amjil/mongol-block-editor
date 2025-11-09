@@ -4,6 +4,7 @@
    ["dart:async" :as async]
    [virtual-keyboard.keyboard-action :as action]
    [virtual-keyboard.input-control :as control]
+   [clojure.set :as set]
    [block-editor.utils.block :as block]
    [block-editor.state :as state]))
 
@@ -85,7 +86,14 @@
 (defn on-update [controller idx text]
   (let [block-id (nth @state/ids idx)]
     (when (= idx @state/edit-index)
-      (block/update-block-content block-id text)))
+      (let [old-text (get @state/blocks block-id)
+            old-titles (state/extract-link-titles old-text)
+            new-titles (state/extract-link-titles text)
+            removed-titles (set/difference old-titles new-titles)]
+        ;; Remove link ids for links that were deleted from text
+        (doseq [title removed-titles]
+          (state/remove-link-id! title))
+        (block/update-block-content block-id text))))
   (cursor-in-double-brackets controller))
 
 (defn on-select-search-item [selected-title selected-id]
@@ -100,9 +108,11 @@
                  (not= -1 close-index)
                  (< open-index cursor)
                  (<= cursor close-index))
-          (let [link-text (if (and selected-id (not-empty selected-id))
-                            (str selected-title "#" selected-id)
-                            selected-title)
+          (let [;; Only save title, not id in text
+                link-text selected-title
+                ;; If id exists, save to mapping table
+                _ (when (and selected-id (not-empty selected-id))
+                    (state/set-link-id! selected-title selected-id))
                 before (subs text 0 (+ open-index 2))
                 after (subs text close-index)
                 new-text (str before link-text after)

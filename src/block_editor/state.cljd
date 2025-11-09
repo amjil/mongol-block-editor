@@ -1,4 +1,7 @@
-(ns block-editor.state)
+(ns block-editor.state
+  (:require
+   [clojure.string :as str]
+   [clojure.set :as set]))
 
 ;; block ids vector
 (def ids (atom []))
@@ -20,11 +23,43 @@
 
 (def note-tap-handler (atom nil))
 
+;; Link title -> id mapping table
+(def link-ids (atom {}))
+
 (defn register-search-handler! [handler]
   (reset! search-handler handler))
 
 (defn register-note-tap-handler! [handler]
   (reset! note-tap-handler handler))
+
+;; Set link id
+(defn set-link-id! [title id]
+  (when (and title id (not-empty title) (not-empty id))
+    (swap! link-ids assoc title id)))
+
+;; Get link id
+(defn get-link-id [title]
+  (get @link-ids title))
+
+;; Remove link id
+(defn remove-link-id! [title]
+  (swap! link-ids dissoc title))
+
+;; Extract all link titles from text
+(defn extract-link-titles [text]
+  (let [link-pattern "\\[\\[([^#\\]]+)(?:#([^\\]]+))?\\]\\]"
+        matches (.allMatches (RegExp. link-pattern) text)]
+    (set (map #(.group % 1) matches))))
+
+;; Clean up link ids that are no longer in any block
+(defn cleanup-unused-link-ids! []
+  (let [all-blocks (vals @blocks)
+        all-text (str/join "\n" all-blocks)
+        used-titles (extract-link-titles all-text)
+        current-titles (set (keys @link-ids))
+        unused-titles (set/difference current-titles used-titles)]
+    (doseq [title unused-titles]
+      (remove-link-id! title))))
 
 (defn set-search-results! [results]
   (let [normalized (cond

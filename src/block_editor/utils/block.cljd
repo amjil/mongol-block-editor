@@ -1,7 +1,6 @@
 (ns block-editor.utils.block
   (:require 
    ["package:uuid/uuid.dart" :as uuid]
-   [clojure.string :as str]
    [block-editor.state :as s]))
 
 (def ^uuid/Uuid uuid-instance (uuid/Uuid.))
@@ -32,8 +31,13 @@
     (swap! s/blocks assoc id "")))
 
 (defn delete-block [id]
-  (swap! s/ids #(vec (remove (fn [x] (= x id)) %)))
-  (swap! s/blocks dissoc id))
+  (let [block-content (get @s/blocks id)
+        link-titles (s/extract-link-titles block-content)]
+    ;; Remove link ids for links in the deleted block
+    (doseq [title link-titles]
+      (s/remove-link-id! title))
+    (swap! s/ids #(vec (remove (fn [x] (= x id)) %)))
+    (swap! s/blocks dissoc id)))
 
 (defn clean []
   (reset! s/edit-index -1)

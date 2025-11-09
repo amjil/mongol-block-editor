@@ -2,7 +2,8 @@
   (:require
    ["package:flutter/material.dart" :as m]
    ["package:flutter/gestures.dart" :as g]
-   [clojure.string :as str]))
+   [clojure.string :as str]
+   [block-editor.state :as state]))
 
 (defn- all-matches [text pattern type-fn]
   (let [matches (.allMatches (RegExp. pattern) text)]
@@ -48,7 +49,9 @@
           matches)))
 
 (defn parse-block-spans [text]
-  (let [link-pattern "\\[\\[([^#\\]]+)(?:#([^\\]]+))?\\]\\]"
+  (let [;; Support both [[title]] and [[title#id]] formats (backward compatible)
+        ;; If #id is matched, prefer id from text; otherwise lookup from mapping table
+        link-pattern "\\[\\[([^#\\]]+)(?:#([^\\]]+))?\\]\\]"
         tag-pattern "(?<=^|[^\\w\\]])#([\\p{IsLetter}\\w\\-]+)"
         ;; Precisely get all matches and their start/end
         link-matches (all-matches text link-pattern (constantly :link))
@@ -83,10 +86,13 @@
     ;;   "Create a link span"
     (let [recognizer (g/TapGestureRecognizer.)
           title (:title span)
-          id (:id span)
+          ;; Prefer id from text (backward compatible), otherwise lookup from mapping table
+          id (or (:id span) (state/get-link-id title))
           display-text (or title (:content span))]
       (set! (.-onTap recognizer)
             (fn []
+              (dart:core/print "xxxxxxxx----")
+              (dart:core/print "xxxxxxxx----")
               (when (fn? on-link-tap)
                 (on-link-tap {:title title :id id}))))
       (m/TextSpan

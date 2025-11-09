@@ -53,7 +53,7 @@
                                                                         (let [target-id (:id link-data)
                                                                               target-title (:title link-data)]
                                                                           (when target-id
-                                                                            ;; 如果有 id，说明是 note 的 id，调用 note-tap-handler
+                                                                            ;; If id exists, it's a note id, call note-tap-handler
                                                                             (when-let [handler @state/note-tap-handler]
                                                                               (handler {:note-id target-id :title target-title})))))})))))])))))))
 
