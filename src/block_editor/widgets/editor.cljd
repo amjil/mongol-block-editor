@@ -11,9 +11,11 @@
 
 (defn editor
   ([] (editor {}))
-  ([{:keys [on-search]}]
+  ([{:keys [on-search on-note-tap]}]
    (when (fn? on-search)
      (state/register-search-handler! on-search))
+   (when (fn? on-note-tap)
+     (state/register-note-tap-handler! on-note-tap))
    (when (empty? @state/ids)
      (block/init))
    (f/widget

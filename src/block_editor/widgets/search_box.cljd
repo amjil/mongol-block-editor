@@ -42,13 +42,20 @@
                     (inc (count search-result)))
        .itemBuilder (f/build [i]
                              (let [has-exact-match (some #{search-query} (map #(get % "title") search-result))
+                                   selected-item (if has-exact-match
+                                                   (nth search-result i)
+                                                   (if (zero? i)
+                                                     nil
+                                                     (nth search-result (dec i))))
                                    selected-title (if has-exact-match
-                                                    (get (nth search-result i) "title")
+                                                    (get selected-item "title")
                                                     (if (zero? i)
                                                       search-query
-                                                      (or (get (nth search-result (dec i)) "title") "No title")))]
+                                                      (or (get selected-item "title") "No title")))
+                                   selected-id (when selected-item
+                                                 (get selected-item "id"))]
                                (m/GestureDetector
-                                .onTap (fn [] (selection/on-select-search-item selected-title))
+                                .onTap (fn [] (selection/on-select-search-item selected-title selected-id))
                                 .child
                                 (m/Container
                                  .padding (m/EdgeInsets.symmetric

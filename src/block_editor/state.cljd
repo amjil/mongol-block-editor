@@ -18,8 +18,13 @@
 
 (def search-handler (atom nil))
 
+(def note-tap-handler (atom nil))
+
 (defn register-search-handler! [handler]
   (reset! search-handler handler))
+
+(defn register-note-tap-handler! [handler]
+  (reset! note-tap-handler handler))
 
 (defn set-search-results! [results]
   (let [normalized (cond

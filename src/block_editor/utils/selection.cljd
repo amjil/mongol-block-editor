@@ -88,7 +88,7 @@
       (block/update-block-content block-id text)))
   (cursor-in-double-brackets controller))
 
-(defn on-select-search-item [selected-title]
+(defn on-select-search-item [selected-title selected-id]
   (let [editing-value @control/editing-value
         text (.-text editing-value)
         selection (.-selection editing-value)]
@@ -100,11 +100,14 @@
                  (not= -1 close-index)
                  (< open-index cursor)
                  (<= cursor close-index))
-          (let [before (subs text 0 (+ open-index 2))
+          (let [link-text (if (and selected-id (not-empty selected-id))
+                            (str selected-title "#" selected-id)
+                            selected-title)
+                before (subs text 0 (+ open-index 2))
                 after (subs text close-index)
-                new-text (str before selected-title after)
+                new-text (str before link-text after)
                 block-id (nth @state/ids @state/edit-index)
-                target-cursor (+ open-index 2 (count selected-title) 2)]
+                target-cursor (+ open-index 2 (count link-text) 2)]
             (control/reset-text new-text)
             (block/update-block-content block-id new-text)
             ;; Move cursor after selected-title, skip ]]

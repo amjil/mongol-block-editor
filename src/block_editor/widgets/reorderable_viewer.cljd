@@ -49,5 +49,11 @@
                                                  (selection/cursor-in-double-brackets controller))})
                (if (empty? block)
                  (placeholder/placeholder)
-                 (richtext-viewer/richtext-viewer block {:on-link-tap nil})))))])))))))
+                 (richtext-viewer/richtext-viewer block {:on-link-tap (fn [link-data]
+                                                                        (let [target-id (:id link-data)
+                                                                              target-title (:title link-data)]
+                                                                          (when target-id
+                                                                            ;; 如果有 id，说明是 note 的 id，调用 note-tap-handler
+                                                                            (when-let [handler @state/note-tap-handler]
+                                                                              (handler {:note-id target-id :title target-title})))))})))))])))))))
 

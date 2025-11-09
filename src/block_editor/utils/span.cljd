@@ -11,12 +11,16 @@
                   start (.-start m)
                   end (.-end m)
                   groups (map #(try (.group m %) (catch Exception _ nil)) (range 1 (inc (.-groupCount m))))
+                  first-group (first groups)
+                  second-group (second groups)
                   match (merge {:type (type-fn)
                                 :content full
                                 :start start
                                 :end end}
-                               (when-not (nil? (second groups))
-                                 {:id (second groups)}))]
+                               (when first-group
+                                 {:title first-group})
+                               (when second-group
+                                 {:id second-group}))]
               match))
           matches)))
 
@@ -77,14 +81,16 @@
 
   (defn ^m/TextSpan create-link-span [span theme on-link-tap]
     ;;   "Create a link span"
-    (let [recognizer (g/TapGestureRecognizer.)]
+    (let [recognizer (g/TapGestureRecognizer.)
+          title (:title span)
+          id (:id span)
+          display-text (or title (:content span))]
       (set! (.-onTap recognizer)
             (fn []
-              (dart:core/print "tap")
-              (when on-link-tap
-                (on-link-tap (:content span)))))
+              (when (fn? on-link-tap)
+                (on-link-tap {:title title :id id}))))
       (m/TextSpan
-       .text (:content span)
+       .text display-text
        .style (m/TextStyle
                .color (-> theme .-colorScheme .-primary)
                .fontSize 18
