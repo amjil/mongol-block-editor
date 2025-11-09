@@ -91,8 +91,6 @@
           display-text (or title (:content span))]
       (set! (.-onTap recognizer)
             (fn []
-              (dart:core/print "xxxxxxxx----")
-              (dart:core/print "xxxxxxxx----")
               (when (fn? on-link-tap)
                 (on-link-tap {:title title :id id}))))
       (m/TextSpan
