@@ -87,3 +87,37 @@
     (when (= idx @state/edit-index)
       (block/update-block-content block-id text)))
   (cursor-in-double-brackets controller))
+
+(defn on-select-search-item [selected-title]
+  (let [editing-value @control/editing-value
+        text (.-text editing-value)
+        selection (.-selection editing-value)]
+    (if (and (.-isValid selection) (.-isCollapsed selection))
+      (let [cursor (.-start selection)
+            open-index (.lastIndexOf text "[[" cursor)
+            close-index (.indexOf text "]]" cursor)]
+        (if (and (not= -1 open-index)
+                 (not= -1 close-index)
+                 (< open-index cursor)
+                 (<= cursor close-index))
+          (let [before (subs text 0 (+ open-index 2))
+                after (subs text close-index)
+                new-text (str before selected-title after)
+                block-id (nth @state/ids @state/edit-index)
+                target-cursor (+ open-index 2 (count selected-title) 2)]
+            (control/reset-text new-text)
+            (block/update-block-content block-id new-text)
+            ;; Move cursor after selected-title, skip ]]
+            (let [new-editing-value @control/editing-value
+                  current-cursor (count (.-text new-editing-value))
+                  offset (- target-cursor current-cursor)]
+              (when (not= 0 offset)
+                (control/update-selection offset)))
+            (reset! state/open-search-box false)
+            (state/clear-search!))
+          (do
+            (reset! state/open-search-box false)
+            (state/clear-search!))))
+      (do
+        (reset! state/open-search-box false)
+        (state/clear-search!)))))
