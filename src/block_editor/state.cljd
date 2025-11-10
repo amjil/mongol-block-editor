@@ -23,6 +23,8 @@
 
 (def note-tap-handler (atom nil))
 
+(def tag-tap-handler (atom nil))
+
 ;; Link title -> id mapping table
 (def link-ids (atom {}))
 
@@ -31,6 +33,9 @@
 
 (defn register-note-tap-handler! [handler]
   (reset! note-tap-handler handler))
+
+(defn register-tag-tap-handler! [handler]
+  (reset! tag-tap-handler handler))
 
 ;; Set link id
 (defn set-link-id! [title id]

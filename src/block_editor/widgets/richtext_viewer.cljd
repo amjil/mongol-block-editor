@@ -6,11 +6,11 @@
    [block-editor.utils.span :as span]))
 
 (defn richtext-viewer
-  [text {:keys [on-link-tap]}]
+  [text {:keys [on-link-tap on-tag-tap]}]
   (f/widget
    :context ctx
    :let [theme (-> m/Theme (.of ctx))
-         ^#/(List m/TextSpan) text-spans (span/parse-to-text-spans text theme on-link-tap)]
+         ^#/(List m/TextSpan) text-spans (span/parse-to-text-spans text theme on-link-tap on-tag-tap)]
    (m/Padding
     .padding (m/EdgeInsets.all 0))
    (mgl/MongolRichText

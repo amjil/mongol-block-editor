@@ -104,11 +104,14 @@
                .fontWeight m/FontWeight.w500)
        .recognizer recognizer)))
 
-  (defn create-tag-span [tag theme]
-    (let [recognizer (g/TapGestureRecognizer.)]
+  (defn ^m/TextSpan create-tag-span [tag theme on-tag-tap]
+    ;;   "Create a tag span"
+    (let [recognizer (g/TapGestureRecognizer.)
+          tag-name (str/replace tag #"^#" "")]
       (set! (.-onTap recognizer)
             (fn []
-              (dart:core/print (str "tag ontap: " tag))))
+              (when (fn? on-tag-tap)
+                (on-tag-tap {:tag tag-name}))))
       (m/TextSpan
        .text tag
        .style (m/TextStyle
@@ -153,7 +156,7 @@
            .fontStyle m/FontStyle.italic
            .color (-> theme .-colorScheme .-primary))))
 
-(defn parse-to-text-spans [text theme on-link-tap]
+(defn parse-to-text-spans [text theme on-link-tap on-tag-tap]
   (let [spans (parse-block-spans text)]
     (map (fn [span]
            (cond
@@ -161,7 +164,7 @@
              (create-link-span span theme on-link-tap)
 
              (= (:type span) :tag)
-             (create-tag-span (:content span) theme)
+             (create-tag-span (:content span) theme on-tag-tap)
 
              (= (:type span) :bold)
              (create-bold-span (:content span) theme)
