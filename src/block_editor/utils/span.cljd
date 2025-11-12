@@ -78,9 +78,9 @@
      .text (:content span)
      .style (m/TextStyle
              .color (-> theme .-colorScheme .-onSurface)
-             .fontFamily "OyunQaganTig"
+             .fontFamily (state/get-font-family)
              .height 1.5
-             .fontSize 18)))
+             .fontSize (state/get-font-size))))
 
   (defn ^m/TextSpan create-link-span [span theme on-link-tap]
     ;;   "Create a link span"
@@ -97,10 +97,10 @@
        .text display-text
        .style (m/TextStyle
                .color (-> theme .-colorScheme .-primary)
-               .fontSize 18
+               .fontSize (state/get-font-size)
                .height 1.5
                .decoration m/TextDecoration.overline
-               .fontFamily "OyunQaganTig"
+               .fontFamily (state/get-font-family)
                .fontWeight m/FontWeight.w500)
        .recognizer recognizer)))
 
@@ -115,9 +115,9 @@
       (m/TextSpan
        .text tag
        .style (m/TextStyle
-               .fontSize 18
+               .fontSize (state/get-font-size)
                .height 1.5
-               .fontFamily "OyunQaganTig"
+               .fontFamily (state/get-font-family)
                .fontWeight m/FontWeight.w500
                .backgroundColor (-> theme .-colorScheme .-surface)
                .decorationStyle m/TextDecorationStyle.solid
@@ -129,9 +129,9 @@
   (m/TextSpan
    .text text
    .style (m/TextStyle
-           .fontSize 18
+           .fontSize (state/get-font-size)
            .height 1.5
-           .fontFamily "OyunQaganTig"
+           .fontFamily (state/get-font-family)
            .fontWeight m/FontWeight.bold
            .color (-> theme .-colorScheme .-primary))))
 
@@ -139,9 +139,9 @@
   (m/TextSpan
    .text text
    .style (m/TextStyle
-           .fontSize 18    
+           .fontSize (state/get-font-size)
            .height 1.5
-           .fontFamily "OyunQaganTig"
+           .fontFamily (state/get-font-family)
            .fontStyle m/FontStyle.italic
            .color (-> theme .-colorScheme .-primary))))
 
@@ -149,9 +149,9 @@
   (m/TextSpan
    .text text
    .style (m/TextStyle
-           .fontSize 18
+           .fontSize (state/get-font-size)
            .height 1.5
-           .fontFamily "OyunQaganTig"
+           .fontFamily (state/get-font-family)
            .fontWeight m/FontWeight.bold
            .fontStyle m/FontStyle.italic
            .color (-> theme .-colorScheme .-primary))))

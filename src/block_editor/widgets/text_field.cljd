@@ -1,7 +1,8 @@
 (ns block-editor.widgets.text-field
   (:require
    ["package:flutter/material.dart" :as m]
-   ["package:mongol/mongol.dart" :as mgl]))
+   ["package:mongol/mongol.dart" :as mgl]
+   [block-editor.state :as state]))
 
 ;; Generic Mongol text field
 (defn text-field [{:keys [controller
@@ -24,7 +25,7 @@
     .maxLength (or max-length 1000)
     .onChanged on-changed
     .onTap on-tap
-    .style (or style (m/TextStyle .fontSize 16 .fontFamily "OyunQaganTig"))
+    .style (or style (m/TextStyle .fontSize (state/get-font-size) .fontFamily (state/get-font-family)))
     .decoration decoration
     .enabled (if (some? enabled) enabled true)
     .readOnly (if (some? read-only) read-only false)

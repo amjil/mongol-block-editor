@@ -28,6 +28,10 @@
 ;; Link title -> id mapping table
 (def link-ids (atom {}))
 
+;; Font configuration
+(def font-family (atom "OyunQaganTig"))
+(def font-size (atom 18))
+
 (defn register-search-handler! [handler]
   (reset! search-handler handler))
 
@@ -78,3 +82,21 @@
 (defn clear-search! []
   (reset! search-query "")
   (reset! search-result []))
+
+;; Set font family
+(defn set-font-family! [family]
+  (when family
+    (reset! font-family family)))
+
+;; Set font size
+(defn set-font-size! [size]
+  (when size
+    (reset! font-size size)))
+
+;; Get font family
+(defn get-font-family []
+  @font-family)
+
+;; Get font size
+(defn get-font-size []
+  @font-size)
