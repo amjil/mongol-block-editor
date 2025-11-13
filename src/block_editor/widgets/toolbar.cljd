@@ -4,27 +4,10 @@
    [cljd.flutter :as f]
    [virtual-keyboard.input-control :as control]
    [virtual-keyboard.keyboard :as keyboard]
-   [block-editor.state :as state]))
+   [block-editor.state :as state]
+   [block-editor.utils.block :as block]))
    
 (declare link-page-fn)
-
-(defn increase-block-level []
-  (when (and (not= -1 @state/edit-index)
-             (< @state/edit-index (count @state/ids)))
-    (let [block-id (nth @state/ids @state/edit-index)
-          current-level (state/get-block-level block-id)
-          new-level (inc current-level)]
-      (state/set-block-level! block-id new-level)
-      (dart:core/print (str "Increased block level to: " new-level)))))
-
-(defn decrease-block-level []
-  (when (and (not= -1 @state/edit-index)
-             (< @state/edit-index (count @state/ids)))
-    (let [block-id (nth @state/ids @state/edit-index)
-          current-level (state/get-block-level block-id)
-          new-level (max 0 (dec current-level))]
-      (state/set-block-level! block-id new-level)
-      (dart:core/print (str "Decreased block level to: " new-level)))))
 
 (def button-style
   (m/OutlinedButton.styleFrom
@@ -78,12 +61,14 @@
                   :tooltip "Increase level (Indent)"
                   :on-press (fn []
                              (dart:core/print "toolbar: Increase level")
-                             (increase-block-level))}
+                             (when-let [new-level (block/increase-block-level)]
+                               (dart:core/print (str "Increased block level to: " new-level))))}
                  {:display "←"
                   :tooltip "Decrease level (Outdent)"
                   :on-press (fn []
                              (dart:core/print "toolbar: Decrease level")
-                             (decrease-block-level))}]]
+                             (when-let [new-level (block/decrease-block-level)]
+                               (dart:core/print (str "Decreased block level to: " new-level))))}]]
     (keyboard/toolbar
      (f/widget
       :context ctx

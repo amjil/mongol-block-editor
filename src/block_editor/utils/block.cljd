@@ -52,3 +52,104 @@
 
 (defn init []
   (create-block))
+
+(defn- valid-edit-index? []
+  (and (not= -1 @s/edit-index)
+       (< @s/edit-index (count @s/ids))))
+
+(defn- block-level-at [levels ids idx]
+  (let [block-id (nth ids idx)]
+    (get levels block-id 0)))
+
+(defn- find-subtree-end [ids levels idx]
+  (let [current-level (block-level-at levels ids idx)
+        total (count ids)]
+    (loop [end idx]
+      (let [next (inc end)]
+        (if (and (< next total)
+                 (> (block-level-at levels ids next) current-level))
+          (recur next)
+          end)))))
+
+(defn- collect-subtree-ids [ids start end]
+  (subvec ids start (inc end)))
+
+(defn- apply-level-delta! [subtree-ids delta]
+  (when (not= 0 delta)
+    (doseq [block-id subtree-ids]
+      (let [current-level (s/get-block-level block-id)
+            updated-level (max 0 (+ current-level delta))]
+        (s/set-block-level! block-id updated-level)))))
+
+(defn- find-parent-index [ids levels idx current-level]
+  (loop [i (dec idx)]
+    (when (>= i 0)
+      (let [level (block-level-at levels ids i)]
+        (if (< level current-level)
+          i
+          (recur (dec i)))))))
+
+(defn- find-parent-subtree-end [ids levels parent-index parent-level]
+  (let [total (count ids)]
+    (loop [end parent-index
+           next (inc parent-index)]
+      (if (and (< next total)
+               (> (block-level-at levels ids next) parent-level))
+        (recur next (inc next))
+        end))))
+
+(defn increase-block-level []
+  (when (valid-edit-index?)
+    (let [ids @s/ids
+          idx @s/edit-index
+          levels @s/levels
+          block-id (nth ids idx)
+          current-level (get levels block-id 0)
+          new-level (inc current-level)
+          ;; Check if there's a valid parent block (avoid gaps in hierarchy)
+          ;; If current block is not the first, check if there's a block with level <= current-level before it
+          has-valid-parent? (if (zero? idx)
+                              ;; If it's the first block, only allow increase when level is 0 (becomes 1)
+                              false
+                              ;; If not the first block, check if previous block has level >= current-level
+                              (let [prev-level (block-level-at levels ids (dec idx))]
+                                (if (>= prev-level current-level)
+                                  true
+                                  false)))]
+      (when has-valid-parent?
+        (let [subtree-end (find-subtree-end ids levels idx)
+              subtree-ids (collect-subtree-ids ids idx subtree-end)]
+          (apply-level-delta! subtree-ids 1)
+          (reset! s/current-id block-id)
+          new-level)))))
+
+(defn decrease-block-level []
+  (when (valid-edit-index?)
+    (let [ids @s/ids
+          idx @s/edit-index
+          levels @s/levels
+          block-id (nth ids idx)
+          current-level (get levels block-id 0)]
+      (when (pos? current-level)
+        (let [subtree-end (find-subtree-end ids levels idx)
+              subtree-ids (vec (collect-subtree-ids ids idx subtree-end))
+              subtree-size (count subtree-ids)
+              parent-index (find-parent-index ids levels idx current-level)
+              insert-index (if (some? parent-index)
+                             (let [parent-level (block-level-at levels ids parent-index)
+                                   parent-subtree-end (find-parent-subtree-end ids levels parent-index parent-level)]
+                               (max 0 (min (count ids)
+                                           (inc (- parent-subtree-end subtree-size)))))
+                             idx)
+              ids-without-subtree (vec (concat (subvec ids 0 idx)
+                                               (subvec ids (inc subtree-end))))
+              bounded-insert-index (min insert-index (count ids-without-subtree))
+              new-ids (vec (concat (subvec ids-without-subtree 0 bounded-insert-index)
+                                   subtree-ids
+                                   (subvec ids-without-subtree bounded-insert-index)))
+              new-level (dec current-level)]
+          (apply-level-delta! subtree-ids -1)
+          (reset! s/ids new-ids)
+          (reset! s/edit-index bounded-insert-index)
+          (reset! s/current-id block-id)
+          new-level)))))
