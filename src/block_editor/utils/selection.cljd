@@ -33,7 +33,8 @@
   (let [editing-value @control/editing-value
         text (.-text editing-value)
         selection (.-selection editing-value)
-        current-block-id (nth @state/ids @state/edit-index)]
+        current-block-id (nth @state/ids @state/edit-index)
+        current-level (state/get-block-level current-block-id)]
     ;; Check if there is content after cursor
     (if (and (.-isValid selection) (.-isCollapsed selection))
       (let [cursor (.-start selection)
@@ -46,8 +47,8 @@
           (let [text-before-cursor (subs text 0 cursor)]
             ;; Update current block content
             (block/update-block-content current-block-id text-before-cursor)
-            ;; Create new block
-            (block/create-block)
+            ;; Create new block with same level as current block
+            (block/create-block current-level)
             (let [idx (inc @state/edit-index)
                   new-block-id (get @state/ids idx)]
               ;; Set text after cursor to new block
@@ -58,7 +59,7 @@
               (control/reset-text text-after-cursor)))
           ;; No content: create new block directly
           (do
-            (block/create-block)
+            (block/create-block current-level)
             (let [idx (inc @state/edit-index)
                   block-id (get @state/ids idx)
                   new-content (get @state/blocks block-id)]
@@ -68,7 +69,7 @@
               (control/reset-text new-content)))))
       ;; Invalid cursor: create new block directly
       (do
-        (block/create-block)
+        (block/create-block current-level)
         (let [idx (inc @state/edit-index)
               block-id (get @state/ids idx)
               new-content (get @state/blocks block-id)]

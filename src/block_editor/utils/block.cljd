@@ -28,11 +28,12 @@
 (defn update-block-content [id text]
   (swap! s/blocks assoc id text))
 
-(defn create-block []
-  (let [id (.v4 uuid-instance)]
+(defn create-block [& [level]]
+  (let [id (.v4 uuid-instance)
+        block-level (or level 0)]
     (swap! s/ids conj id)
     (swap! s/blocks assoc id "")
-    (swap! s/levels assoc id 0)))
+    (swap! s/levels assoc id block-level)))
 
 (defn delete-block [id]
   (let [block-content (get @s/blocks id)
@@ -51,7 +52,7 @@
   (reset! s/levels {}))
 
 (defn init []
-  (create-block))
+  (create-block 0))
 
 (defn- valid-edit-index? []
   (and (not= -1 @s/edit-index)

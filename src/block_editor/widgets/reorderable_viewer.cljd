@@ -27,7 +27,7 @@
      :watch [block-content (f/$ (get (f/<! state/blocks) block-id))
              level (f/$ (get (f/<! state/levels) block-id 0))
              eidx (f/$ (f/<! state/edit-index))]
-     :let [padding-top (* (inc level) 16)
+     :let [padding-top (* (inc level) 24)
            is-editing (= eidx idx)
            is-empty (empty? block-content)]
      (m/GestureDetector
