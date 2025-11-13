@@ -30,14 +30,52 @@
       [false -1 -1])))
 
 (defn next-block []
-  (block/create-block)
-  (let [idx (inc @state/edit-index)
-        block-id (get @state/ids idx)
-        new-content (get @state/blocks block-id)]
-    (action/clear-candidates)
-    (reset! state/edit-index (inc @state/edit-index))
-    (reset! state/current-id block-id)
-    (control/reset-text new-content)))
+  (let [editing-value @control/editing-value
+        text (.-text editing-value)
+        selection (.-selection editing-value)
+        current-block-id (nth @state/ids @state/edit-index)]
+    ;; Check if there is content after cursor
+    (if (and (.-isValid selection) (.-isCollapsed selection))
+      (let [cursor (.-start selection)
+            text-length (count text)
+            text-after-cursor (if (< cursor text-length)
+                                (subs text cursor)
+                                "")]
+        (if (not-empty text-after-cursor)
+          ;; Has content: copy text after cursor to new block, keep only text before cursor in current block
+          (let [text-before-cursor (subs text 0 cursor)]
+            ;; Update current block content
+            (block/update-block-content current-block-id text-before-cursor)
+            ;; Create new block
+            (block/create-block)
+            (let [idx (inc @state/edit-index)
+                  new-block-id (get @state/ids idx)]
+              ;; Set text after cursor to new block
+              (block/update-block-content new-block-id text-after-cursor)
+              (action/clear-candidates)
+              (reset! state/edit-index idx)
+              (reset! state/current-id new-block-id)
+              (control/reset-text text-after-cursor)))
+          ;; No content: create new block directly
+          (do
+            (block/create-block)
+            (let [idx (inc @state/edit-index)
+                  block-id (get @state/ids idx)
+                  new-content (get @state/blocks block-id)]
+              (action/clear-candidates)
+              (reset! state/edit-index idx)
+              (reset! state/current-id block-id)
+              (control/reset-text new-content)))))
+      ;; Invalid cursor: create new block directly
+      (do
+        (block/create-block)
+        (let [idx (inc @state/edit-index)
+              block-id (get @state/ids idx)
+              new-content (get @state/blocks block-id)]
+          (action/clear-candidates)
+          (reset! state/edit-index idx)
+          (reset! state/current-id block-id)
+          (control/reset-text new-content))))))
 
 (defn next-content []
   (let [editing-value @control/editing-value
