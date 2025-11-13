@@ -1,20 +1,23 @@
 (ns block-editor.widgets.header
   (:require
    ["package:flutter/material.dart" :as m]
-   [cljd.flutter :as f]))
+   [cljd.flutter :as f]
+   [block-editor.state :as state]))
 
 (defn header [{:keys [size color index]}]
   (f/widget
+   :watch [font-size (f/$ (f/<! state/font-size))]
    :let [gradient-colors (if color
                            [color color]
                            [m/Colors.grey.shade700
-                            m/Colors.grey.shade800])]
+                            m/Colors.grey.shade800])
+         margin-left (* font-size 0.89)]
    (m/ReorderableDragStartListener
     .index index
     .child (m/Container
             .width size
             .height size
-            .margin (m/EdgeInsets.only .left 16)
+            .margin (m/EdgeInsets.only .left margin-left)
             .decoration (m/BoxDecoration.
                          .shape m/BoxShape.circle
                          .gradient (m/LinearGradient.
