@@ -33,9 +33,9 @@
          .child
          (m/Column
           .mainAxisAlignment m.MainAxisAlignment/spaceAround
-          .crossAxisAlignment m.CrossAxisAlignment/center
+          .crossAxisAlignment m.CrossAxisAlignment/start
           .children
-          [(header/header {:size 10})
+          [(header/header {:size 10 :index idx})
            (m/Expanded
             .child
             (m/Padding
