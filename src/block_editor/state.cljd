@@ -8,6 +8,9 @@
 
 (def blocks (atom {}))
 
+;; Block level mapping: id -> level (default 0)
+(def levels (atom {}))
+
 (def current-id (atom nil))
 
 (def search-result (atom []))
@@ -100,3 +103,12 @@
 ;; Get font size
 (defn get-font-size []
   @font-size)
+
+;; Set block level
+(defn set-block-level! [id level]
+  (when (and id (some? level))
+    (swap! levels assoc id level)))
+
+;; Get block level (default 0 if not set)
+(defn get-block-level [id]
+  (get @levels id 0))
