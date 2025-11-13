@@ -15,6 +15,12 @@
         new-block-ids (vec (concat (take new-index without-old)
                                    [block-to-move]
                                    (drop new-index without-old)))]
+
+    (if (= old-index @s/edit-index)
+      (reset! s/edit-index new-index)
+      (if (> old-index new-index)
+        (reset! s/edit-index (dec old-index))
+        (reset! s/edit-index (inc old-index))))
     (reset! s/ids new-block-ids)))
 
 (defn sort-blocks-by-ids [ids blocks]
