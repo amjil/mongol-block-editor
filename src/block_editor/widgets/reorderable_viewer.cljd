@@ -14,6 +14,8 @@
   (f/widget
    :watch [ids (f/$ (f/<! state/ids))]
    :managed [controller (m/TextEditingController. .text "")]
+   (m/Padding
+    .padding (m/EdgeInsets.symmetric .horizontal 8 .vertical 16))
    (m/ReorderableListView.builder
     ;; horizontal scroll
     .scrollDirection m/Axis.horizontal
@@ -23,49 +25,62 @@
     (f/build
      [idx]
      :key (m/ValueKey (nth @state/ids idx))
-     :let [block-id (nth ids idx)]
+     :context ctx
+     :let [block-id (nth ids idx)
+           theme (-> m/Theme (.of ctx))]
      :watch [block-content (f/$ (get (f/<! state/blocks) block-id))
              level (f/$ (get (f/<! state/levels) block-id 0))
              eidx (f/$ (f/<! state/edit-index))]
-     :let [padding-top (* (inc level) 24)
-           is-editing (= eidx idx)
-           is-empty (empty? block-content)]
+     :let [is-editing (= eidx idx)
+           is-empty (empty? block-content)
+           is-child-block (not (zero? level))
+           divider-color (or (.-dividerColor theme)
+                             (-> theme .-colorScheme .-onSurface (.withOpacity 0.12)))]
      (m/GestureDetector
       .onTap (partial selection/on-click-reorderable-item controller idx)
-      .onDoubleTap (partial selection/on-click-reorderable-item controller idx)
-      .child
-      (m/Padding
-       .padding (m/EdgeInsets.only .top padding-top)
-       .child
-       (m/Column
-        .mainAxisAlignment m.MainAxisAlignment/spaceAround
-        .crossAxisAlignment m/CrossAxisAlignment.start
-        .children
-        [(header/header {:size 10 :index idx})
-         (m/Expanded
-          .child
-          (m/Padding
-           .padding (m/EdgeInsets.symmetric .horizontal 8 .vertical 16)
-          .child
-          (if is-editing
-            (text-field/text-field {:controller controller
-                                    :on-changed (partial selection/on-update controller idx)
-                                    :on-tap (fn []
-                                              (selection/cursor-in-double-brackets controller))})
-            (if is-empty
-              (placeholder/placeholder)
-              (richtext-viewer/richtext-viewer block-content {:on-link-tap (fn [link-data]
-                                                                             (let [target-id (:id link-data)
-                                                                                   target-title (:title link-data)]
-                                                                               (when target-id
-                                                                                 ;; If id exists, it's a note id, call note-tap-handler
-                                                                                 (when-let [handler @state/note-tap-handler]
-                                                                                   (dart:core/print "in block-item ---")
-                                                                                   (handler {"id" target-id "title" target-title})))))
-                                                              :on-tag-tap (fn [tag-data]
-                                                                            (let [tag-name (:tag tag-data)]
-                                                                              (when tag-name
-                                                                                ;; Call tag-tap-handler
-                                                                                (when-let [handler @state/tag-tap-handler]
-                                                                                  (handler {"tag" tag-name})))))})))))])))))))
+      .onDoubleTap (partial selection/on-click-reorderable-item controller idx))
+     (m/IntrinsicWidth)
+     (m/Column
+      .mainAxisAlignment m.MainAxisAlignment/spaceAround
+      .crossAxisAlignment m/CrossAxisAlignment.start
+      .children
+      [(if is-child-block
+         (m/Column
+          .children
+          (flatten
+           (map (fn [_]
+                  [(m/Divider
+                    .color divider-color
+                    .thickness 1)
+                   (m/Padding
+                    .padding (m/EdgeInsets.only .top 20))])
+                (range level))))
+         (m/SizedBox))
+       (header/header {:size 10 :index idx})
+       (m/Expanded
+        .child
+        (m/Padding
+         .padding (m/EdgeInsets.symmetric .horizontal 8 .vertical 16)
+         .child
+         (if is-editing
+           (text-field/text-field {:controller controller
+                                   :on-changed (partial selection/on-update controller idx)
+                                   :on-tap (fn []
+                                             (selection/cursor-in-double-brackets controller))})
+           (if is-empty
+             (placeholder/placeholder)
+             (richtext-viewer/richtext-viewer block-content {:on-link-tap (fn [link-data]
+                                                                            (let [target-id (:id link-data)
+                                                                                  target-title (:title link-data)]
+                                                                              (when target-id
+                                                                                ;; If id exists, it's a note id, call note-tap-handler
+                                                                                (when-let [handler @state/note-tap-handler]
+                                                                                  (dart:core/print "in block-item ---")
+                                                                                  (handler {"id" target-id "title" target-title})))))
+                                                             :on-tag-tap (fn [tag-data]
+                                                                           (let [tag-name (:tag tag-data)]
+                                                                             (when tag-name
+                                                                               ;; Call tag-tap-handler
+                                                                               (when-let [handler @state/tag-tap-handler]
+                                                                                 (handler {"tag" tag-name})))))})))))])))))
 
