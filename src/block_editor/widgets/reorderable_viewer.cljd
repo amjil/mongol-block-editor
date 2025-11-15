@@ -49,9 +49,12 @@
           .children
           (flatten
            (map (fn [_]
-                  [(m/Divider
-                    .color divider-color
-                    .thickness 1)
+                  [(m/Padding
+                    .padding (m/EdgeInsets.symmetric .horizontal 4)
+                    .child
+                    (m/Divider
+                     .color divider-color
+                     .thickness 1))
                    (m/Padding
                     .padding (m/EdgeInsets.only .top 20))])
                 (range level))))
