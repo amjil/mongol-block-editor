@@ -59,7 +59,7 @@
                     .padding (m/EdgeInsets.only .top 20))])
                 (range level))))
          (m/SizedBox))
-       (header/header {:size 10 :index idx})
+       (header/header {:size 6 :index idx})
        (m/Expanded
         .child
         (m/Padding

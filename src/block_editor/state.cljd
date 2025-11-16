@@ -11,6 +11,8 @@
 ;; Block level mapping: id -> level (default 0)
 (def levels (atom {}))
 
+(def block-meta (atom {}))
+
 (def current-id (atom nil))
 
 (def search-result (atom []))
