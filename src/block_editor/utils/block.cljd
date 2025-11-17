@@ -5,20 +5,39 @@
 
 (def ^uuid/Uuid uuid-instance (uuid/Uuid.))
 
+(declare find-subtree-end collect-subtree-ids)
+
 (defn reorder-blocks [old-index new-index]
   (let [blocks (vec @s/ids)
+        levels @s/levels
         block-to-move (nth blocks old-index)
-        ;; Step 1: Remove element from old position
-        without-old (vec (concat (take old-index blocks)
-                                 (drop (inc old-index) blocks)))
-        ;; Step 2: Insert element at new position
-        new-block-ids (vec (concat (take new-index without-old)
-                                   [block-to-move]
-                                   (drop new-index without-old)))]
-
-    (when (not= -1 @s/edit-index)
-      (reset! s/edit-index -1))
-    (reset! s/ids new-block-ids)))
+        block-level (get levels block-to-move 0)
+        subtree-end (find-subtree-end blocks levels old-index)
+        subtree-ids (collect-subtree-ids blocks old-index subtree-end)
+        subtree-size (count subtree-ids)]
+    (when (and (not (<= old-index new-index (inc subtree-end)))
+               (not (and (> block-level 0)
+                         (zero? new-index))))
+      (let [without-subtree (vec (concat (subvec blocks 0 old-index)
+                                         (subvec blocks (inc subtree-end))))
+            adjusted-index (cond
+                             (<= new-index old-index) new-index
+                             (> new-index subtree-end) (- new-index subtree-size)
+                             :else old-index)
+            insert-index (-> adjusted-index
+                             (max 0)
+                             (min (count without-subtree)))
+            new-block-ids (vec (concat (subvec without-subtree 0 insert-index)
+                                       subtree-ids
+                                       (subvec without-subtree insert-index)))
+            child-before? (some (fn [block-id]
+                                  (pos? (get levels block-id 0)))
+                                (take insert-index new-block-ids))]
+        (when-not (and (zero? old-index)
+                       child-before?)
+          (when (not= -1 @s/edit-index)
+            (reset! s/edit-index -1))
+          (reset! s/ids new-block-ids)))))) 
 
 (defn sort-blocks-by-ids [ids blocks]
   (let [block-ids ids 
