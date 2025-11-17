@@ -17,7 +17,7 @@
     .child (m/Container
             .width size
             .height size
-            .margin (m/EdgeInsets.only .left margin-left)
+            .margin (m/EdgeInsets.only .left margin-left .top 26)
             .decoration (m/BoxDecoration.
                          .shape m/BoxShape.circle
                          .gradient (m/LinearGradient.

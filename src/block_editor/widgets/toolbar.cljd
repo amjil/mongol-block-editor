@@ -5,7 +5,8 @@
    [virtual-keyboard.input-control :as control]
    [virtual-keyboard.keyboard :as keyboard]
    [block-editor.state :as state]
-   [block-editor.utils.block :as block]))
+   [block-editor.utils.block :as block]
+   [block-editor.widgets.meta :as meta]))
    
 (declare link-page-fn)
 
@@ -39,7 +40,12 @@
      .child (m/Text display)))))
 
 (defn toolbar []
-  (let [actions [{:display "B"
+  (let [actions [{:display "M"
+                  :tooltip "Block Properties"
+                  :on-press (fn []
+                              (dart:core/print "toolbar: Meta")
+                              (swap! meta/open-meta not))}
+                 {:display "B"
                   :tooltip "Bold"
                   :on-press (fn []
                               (dart:core/print "toolbar: Bold")
@@ -60,15 +66,15 @@
                  {:display "→"
                   :tooltip "Increase level (Indent)"
                   :on-press (fn []
-                             (dart:core/print "toolbar: Increase level")
-                             (when-let [new-level (block/increase-block-level)]
-                               (dart:core/print (str "Increased block level to: " new-level))))}
+                              (dart:core/print "toolbar: Increase level")
+                              (when-let [new-level (block/increase-block-level)]
+                                (dart:core/print (str "Increased block level to: " new-level))))}
                  {:display "←"
                   :tooltip "Decrease level (Outdent)"
                   :on-press (fn []
-                             (dart:core/print "toolbar: Decrease level")
-                             (when-let [new-level (block/decrease-block-level)]
-                               (dart:core/print (str "Decreased block level to: " new-level))))}]]
+                              (dart:core/print "toolbar: Decrease level")
+                              (when-let [new-level (block/decrease-block-level)]
+                                (dart:core/print (str "Decreased block level to: " new-level))))}]]
     (keyboard/toolbar
      (f/widget
       :context ctx

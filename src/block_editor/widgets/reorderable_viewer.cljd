@@ -8,6 +8,7 @@
    [block-editor.widgets.text-field :as text-field]
    [block-editor.widgets.header :as header]
    [block-editor.widgets.placeholder :as placeholder]
+   [block-editor.widgets.todo :as todo]
    [block-editor.utils.selection :as selection]))
 
 (defn reorderable-view []
@@ -15,7 +16,7 @@
    :watch [ids (f/$ (f/<! state/ids))]
    :managed [controller (m/TextEditingController. .text "")]
    (m/Padding
-    .padding (m/EdgeInsets.symmetric .horizontal 8 .vertical 16))
+    .padding (m/EdgeInsets.symmetric .horizontal 8))
    (m/ReorderableListView.builder
     ;; horizontal scroll
     .scrollDirection m/Axis.horizontal
@@ -29,6 +30,8 @@
      :let [block-id (nth ids idx)
            theme (-> m/Theme (.of ctx))]
      :watch [block-content (f/$ (get (f/<! state/blocks) block-id))
+             is-todo (f/$ (get-in (f/<! state/block-meta) [block-id "todo"]))
+             todo-text (f/$ (get-in (f/<! state/block-meta) [block-id "todo-text"]))
              level (f/$ (get (f/<! state/levels) block-id 0))
              eidx (f/$ (f/<! state/edit-index))]
      :let [is-editing (= eidx idx)
@@ -59,31 +62,40 @@
                     .padding (m/EdgeInsets.only .top 20))])
                 (range level))))
          (m/SizedBox))
-       (header/header {:size 6 :index idx})
+       (if (true? is-todo)
+         (m/SizedBox)
+         (header/header {:size 6 :index idx}))
        (m/Expanded
         .child
         (m/Padding
-         .padding (m/EdgeInsets.symmetric .horizontal 8 .vertical 16)
+         .padding (m/EdgeInsets.symmetric .horizontal 8 .vertical 8)
          .child
-         (if is-editing
-           (text-field/text-field {:controller controller
-                                   :on-changed (partial selection/on-update controller idx)
-                                   :on-tap (fn []
-                                             (selection/cursor-in-double-brackets controller))})
-           (if is-empty
-             (placeholder/placeholder)
-             (richtext-viewer/richtext-viewer block-content {:on-link-tap (fn [link-data]
-                                                                            (let [target-id (:id link-data)
-                                                                                  target-title (:title link-data)]
-                                                                              (when target-id
-                                                                                ;; If id exists, it's a note id, call note-tap-handler
-                                                                                (when-let [handler @state/note-tap-handler]
-                                                                                  (dart:core/print "in block-item ---")
-                                                                                  (handler {"id" target-id "title" target-title})))))
-                                                             :on-tag-tap (fn [tag-data]
-                                                                           (let [tag-name (:tag tag-data)]
-                                                                             (when tag-name
-                                                                               ;; Call tag-tap-handler
-                                                                               (when-let [handler @state/tag-tap-handler]
-                                                                                 (handler {"tag" tag-name})))))})))))])))))
+         (m/Column
+          .children
+          [(if (true? is-todo)
+             (todo/todo {:index idx})
+             (m/SizedBox))
+           (m/Expanded
+            .child
+            (if is-editing
+              (text-field/text-field {:controller controller
+                                      :on-changed (partial selection/on-update controller idx)
+                                      :on-tap (fn []
+                                                (selection/cursor-in-double-brackets controller))})
+              (if is-empty
+                (placeholder/placeholder)
+                (richtext-viewer/richtext-viewer block-content {:on-link-tap (fn [link-data]
+                                                                               (let [target-id (:id link-data)
+                                                                                     target-title (:title link-data)]
+                                                                                 (when target-id
+                                                                                   ;; If id exists, it's a note id, call note-tap-handler
+                                                                                   (when-let [handler @state/note-tap-handler]
+                                                                                     (dart:core/print "in block-item ---")
+                                                                                     (handler {"id" target-id "title" target-title})))))
+                                                                :on-tag-tap (fn [tag-data]
+                                                                              (let [tag-name (:tag tag-data)]
+                                                                                (when tag-name
+                                                                                  ;; Call tag-tap-handler
+                                                                                  (when-let [handler @state/tag-tap-handler]
+                                                                                    (handler {"tag" tag-name})))))}))))])))])))))
 

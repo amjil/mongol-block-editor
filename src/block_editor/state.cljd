@@ -114,3 +114,13 @@
 ;; Get block level (default 0 if not set)
 (defn get-block-level [id]
   (get @levels id 0))
+  
+
+;; Set block meta
+(defn set-block-meta! [id meta]
+  (when (and id (some? meta))
+    (swap! block-meta assoc id meta)))
+
+;; Get block meta
+(defn get-block-meta [id]
+  (get @block-meta id))
