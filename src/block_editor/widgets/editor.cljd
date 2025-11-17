@@ -27,14 +27,14 @@
    (f/widget
     (m/SafeArea)
     (m/Center)
-    (m/Stack
+    (m/Column
      .children
-     [(m/Column
-       .children
-       [(m/Expanded
-         .child
-         (reorderable-view/reorderable-view))
-        (toolbar/toolbar)
-        (keyboard/keyboard)])
-      (search-box/search-box)
-      (keyboard/candidates-panel)]))))
+     [(m/Expanded
+       .child
+       (m/Stack
+        .children
+        [(reorderable-view/reorderable-view)
+         (search-box/search-box)
+         (keyboard/candidates-panel)]))
+      (toolbar/toolbar)
+      (keyboard/keyboard)]))))
