@@ -3,7 +3,8 @@
    ["package:flutter/material.dart" :as m]
    ["package:mongol/mongol.dart" :as mgl]
    [cljd.flutter :as f]
-   [block-editor.state :as state]))
+   [block-editor.state :as state]
+   [block-editor.utils.color :as color-utils]))
 
 (def open-meta (atom false))
 
@@ -19,7 +20,7 @@
                                (nth @state/ids @state/edit-index))
             block-meta (when current-block-id
                          (state/get-block-meta current-block-id))
-            bg-color (get block-meta "bg-color" nil)]
+            bg-color-argb (get block-meta "bg-color")]
       :watch [
               {{is-todo "todo"} current-block-id} state/block-meta]
       (m/Align
@@ -76,7 +77,7 @@
         (m/SizedBox .width 20)
         ;; Todo toggle section
         (m/Container
-         .padding (m/EdgeInsets.symmetric .horizontal 12 .vertical 8)
+         .padding (m/EdgeInsets.symmetric .horizontal 4 .vertical 8)
          .decoration (m/BoxDecoration
                       .color (m/Color.fromARGB 50 255 255 255)
                       .borderRadius (m/BorderRadius.circular 10))
@@ -114,7 +115,7 @@
         (m/SizedBox .width 20)
         ;; Background color selector section
         (m/Container
-         .padding (m/EdgeInsets.symmetric .horizontal 12 .vertical 8)
+         .padding (m/EdgeInsets.symmetric .horizontal 8 .vertical 8)
          .decoration (m/BoxDecoration
                       .color (m/Color.fromARGB 50 255 255 255)
                       .borderRadius (m/BorderRadius.circular 10))
@@ -135,23 +136,24 @@
             .spacing 10
             .runSpacing 10
             .children
-            (let [colors [m/Colors.transparent
-                          (m/Color.fromARGB 255 255 235 238)
-                          (m/Color.fromARGB 255 232 245 233)
-                          (m/Color.fromARGB 255 227 242 253)
-                          (m/Color.fromARGB 255 255 243 224)
-                          (m/Color.fromARGB 255 243 229 245)
-                          (m/Color.fromARGB 255 255 224 178)
-                          (m/Color.fromARGB 255 225 245 254)]]
-              (vec (map (fn [color]
-                          (let [is-selected (and bg-color (= (.-value color) (.-value bg-color)))]
+            (let [color-options [[0 0 0 0]
+                                 [255 255 235 238]
+                                 [255 232 245 233]
+                                 [255 227 242 253]
+                                 [255 255 243 224]
+                                 [255 243 229 245]
+                                 [255 255 224 178]
+                                 [255 225 245 254]]]
+              (vec (map (fn [argb]
+                          (let [color (color-utils/argb->color argb)
+                                is-selected (= bg-color-argb argb)]
                             (m/GestureDetector
                              .onTap (fn []
                                       (when current-block-id
                                         (let [current-meta (or block-meta {})
-                                              updated-meta (if (= color m/Colors.transparent)
-                                                             (dissoc current-meta :bg-color)
-                                                             (assoc current-meta :bg-color color))]
+                                              updated-meta (if (= argb color-utils/transparent-argb)
+                                                             (dissoc current-meta "bg-color")
+                                                             (assoc current-meta "bg-color" argb))]
                                           (state/set-block-meta! current-block-id updated-meta))))
                              .child
                              (m/AnimatedContainer
@@ -176,12 +178,12 @@
                                                           .offset (m/Offset. 0 2)
                                                           .spreadRadius 1)]
                                                         []))
-                              .child (when (= color m/Colors.transparent)
+                              .child (when (= argb color-utils/transparent-argb)
                                        (m/Center
                                         .child
                                         (m/Container
                                          .width 2
                                          .height 20
                                          .color (m/Color.fromARGB 150 255 255 255))))))))
-                        colors))))]))]))
+                        color-options))))]))]))
      (m/SizedBox))))
