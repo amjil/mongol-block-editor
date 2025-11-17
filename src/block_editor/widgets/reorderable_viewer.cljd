@@ -33,12 +33,14 @@
     :watch [block-content (f/$ (get (f/<! state/blocks) block-id))
             is-todo (f/$ (get-in (f/<! state/block-meta) [block-id "todo"]))
             bg-color-argb (f/$ (get-in (f/<! state/block-meta) [block-id "bg-color"]))
+            text-color-argb (f/$ (get-in (f/<! state/block-meta) [block-id "text-color"]))
             level (f/$ (get (f/<! state/levels) block-id 0))
             eidx (f/$ (f/<! state/edit-index))]
     :let [is-editing (= eidx idx)
           is-empty (empty? block-content)
           is-child-block (not (zero? level))
           bg-color (color-utils/argb->color bg-color-argb)
+          text-color (color-utils/argb->color text-color-argb)
           divider-color (or (.-dividerColor theme)
                             (-> theme .-colorScheme .-onSurface (.withOpacity 0.12)))]
      (m/GestureDetector
@@ -85,11 +87,16 @@
            (m/Expanded
             .child
             (if is-editing
-              (text-field/text-field
-               {:controller controller
-                :on-changed (partial selection/on-update controller idx)
-                :on-tap (fn []
-                          (selection/cursor-in-double-brackets controller))})
+              (let [editor-style (m/TextStyle
+                                  .fontSize (state/get-font-size)
+                                  .fontFamily (state/get-font-family)
+                                  .color (or text-color (-> theme .-colorScheme .-onSurface)))]
+                (text-field/text-field
+                 {:controller controller
+                  :style editor-style
+                  :on-changed (partial selection/on-update controller idx)
+                  :on-tap (fn []
+                            (selection/cursor-in-double-brackets controller))}))
               (if is-empty
                 (placeholder/placeholder)
                 (richtext-viewer/richtext-viewer
@@ -107,5 +114,6 @@
                                   (when tag-name
                                     ;; Call tag-tap-handler
                                     (when-let [handler @state/tag-tap-handler]
-                                      (handler {"tag" tag-name})))))}))))])))])))))
+                                      (handler {"tag" tag-name})))))
+                  :text-color text-color}))))])))])))))
 

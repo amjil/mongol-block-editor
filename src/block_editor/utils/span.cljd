@@ -72,17 +72,17 @@
               spans (conj spans (dissoc item :start :end))]
           (recur spans end (rest ms)))))))
 
-  (defn ^m/TextSpan create-text-span [span theme]
+  (defn ^m/TextSpan create-text-span [span theme text-color]
     ;;"Create a text span"
     (m/TextSpan
      .text (:content span)
      .style (m/TextStyle
-             .color (-> theme .-colorScheme .-onSurface)
+             .color (or text-color (-> theme .-colorScheme .-onSurface))
              .fontFamily (state/get-font-family)
              .height 1.5
              .fontSize (state/get-font-size))))
 
-  (defn ^m/TextSpan create-link-span [span theme on-link-tap]
+  (defn ^m/TextSpan create-link-span [span theme on-link-tap text-color]
     ;;   "Create a link span"
     (let [recognizer (g/TapGestureRecognizer.)
           title (:title span)
@@ -96,7 +96,7 @@
       (m/TextSpan
        .text display-text
        .style (m/TextStyle
-               .color (-> theme .-colorScheme .-primary)
+               .color (or text-color (-> theme .-colorScheme .-primary))
                .fontSize (state/get-font-size)
                .height 1.5
                .decoration m/TextDecoration.overline
@@ -104,7 +104,7 @@
                .fontWeight m/FontWeight.w500)
        .recognizer recognizer)))
 
-  (defn ^m/TextSpan create-tag-span [tag theme on-tag-tap]
+  (defn ^m/TextSpan create-tag-span [tag theme on-tag-tap text-color]
     ;;   "Create a tag span"
     (let [recognizer (g/TapGestureRecognizer.)
           tag-name (str/replace tag #"^#" "")]
@@ -122,10 +122,10 @@
                .backgroundColor (-> theme .-colorScheme .-surface)
                .decorationStyle m/TextDecorationStyle.solid
                .decoration m/TextDecoration.overline
-               .color (-> theme .-colorScheme .-primary))
+               .color (or text-color (-> theme .-colorScheme .-primary)))
        .recognizer recognizer)))
 
-(defn create-bold-span [text theme]
+(defn create-bold-span [text theme text-color]
   (m/TextSpan
    .text text
    .style (m/TextStyle
@@ -133,9 +133,9 @@
            .height 1.5
            .fontFamily (state/get-font-family)
            .fontWeight m/FontWeight.bold
-           .color (-> theme .-colorScheme .-primary))))
+           .color (or text-color (-> theme .-colorScheme .-primary)))))
 
-(defn create-italic-span [text theme]
+(defn create-italic-span [text theme text-color]
   (m/TextSpan
    .text text
    .style (m/TextStyle
@@ -143,9 +143,9 @@
            .height 1.5
            .fontFamily (state/get-font-family)
            .fontStyle m/FontStyle.italic
-           .color (-> theme .-colorScheme .-primary))))
+           .color (or text-color (-> theme .-colorScheme .-primary)))))
 
-(defn create-bold-italic-span [text theme]
+(defn create-bold-italic-span [text theme text-color]
   (m/TextSpan
    .text text
    .style (m/TextStyle
@@ -154,27 +154,33 @@
            .fontFamily (state/get-font-family)
            .fontWeight m/FontWeight.bold
            .fontStyle m/FontStyle.italic
-           .color (-> theme .-colorScheme .-primary))))
+           .color (or text-color (-> theme .-colorScheme .-primary)))))
 
-(defn parse-to-text-spans [text theme on-link-tap on-tag-tap]
+(defn- build-text-spans [text theme on-link-tap on-tag-tap text-color]
   (let [spans (parse-block-spans text)]
     (map (fn [span]
            (cond
              (= (:type span) :link)
-             (create-link-span span theme on-link-tap)
+             (create-link-span span theme on-link-tap text-color)
 
              (= (:type span) :tag)
-             (create-tag-span (:content span) theme on-tag-tap)
+             (create-tag-span (:content span) theme on-tag-tap text-color)
 
              (= (:type span) :bold)
-             (create-bold-span (:content span) theme)
+             (create-bold-span (:content span) theme text-color)
 
              (= (:type span) :italic)
-             (create-italic-span (:content span) theme)
+             (create-italic-span (:content span) theme text-color)
 
              (= (:type span) :bold-italic)
-             (create-bold-italic-span (:content span) theme)
+             (create-bold-italic-span (:content span) theme text-color)
 
              :else
-             (create-text-span span theme)))
+             (create-text-span span theme text-color)))
          spans)))
+
+(defn parse-to-text-spans [text theme on-link-tap on-tag-tap]
+  (build-text-spans text theme on-link-tap on-tag-tap nil))
+
+(defn parse-to-text-spans-colored [text theme on-link-tap on-tag-tap text-color]
+  (build-text-spans text theme on-link-tap on-tag-tap text-color))
