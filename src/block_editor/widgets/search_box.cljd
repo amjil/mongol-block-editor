@@ -22,8 +22,6 @@
        .padding (m/EdgeInsets.only .top 16))
       (m/Container
        .width (/ width 2)
-       .constraints (m/BoxConstraints.
-                     .maxHeight (/ height 2.5))
        .decoration (m/BoxDecoration
                     .color (m/Color.fromARGB 240 40 40 40)
                     .borderRadius (m/BorderRadius.circular 12)
