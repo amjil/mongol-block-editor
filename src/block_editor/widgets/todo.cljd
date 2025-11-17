@@ -77,7 +77,7 @@
              .onTap (fn []
                       (when block-id
                         (let [new-todo-text (if (= "done" todo-text) nil "done")]
-                          (swap! state/block-meta assoc [block-id "todo-text"] new-todo-text)
+                          (swap! state/block-meta assoc-in [block-id "todo-text"] new-todo-text)
                           (reset! open-todo-selector false))))
              .child
              (m/Container
