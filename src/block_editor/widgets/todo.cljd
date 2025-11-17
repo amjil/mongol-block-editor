@@ -9,9 +9,9 @@
 (defn todo-selector-popup []
   (f/widget
    :context ctx
-   :let [width (-> m/MediaQuery (.of ctx) .-size .-width)
-         block-id @state/current-id]
+   :let [width (-> m/MediaQuery (.of ctx) .-size .-width)]
    :watch [open? open-todo-selector
+           block-id state/current-id
            todo-text (f/$ (get-in (f/<! state/block-meta) [block-id "todo-text"]))]
    (if open?
      (f/widget
@@ -46,10 +46,10 @@
            .children
            [(m/GestureDetector
              .onTap (fn []
+                      (reset! open-todo-selector false)
                       (when block-id
                         (let [new-todo-text (if (= "doing" todo-text) nil "doing")]
-                          (swap! state/block-meta assoc-in [block-id "todo-text"] new-todo-text)
-                          (reset! open-todo-selector false))))
+                          (swap! state/block-meta assoc-in [block-id "todo-text"] new-todo-text))))
              .child
              (m/Container
               .padding (m/EdgeInsets.symmetric .horizontal 12 .vertical 8)
@@ -77,8 +77,8 @@
              .onTap (fn []
                       (when block-id
                         (let [new-todo-text (if (= "done" todo-text) nil "done")]
-                          (swap! state/block-meta assoc-in [block-id "todo-text"] new-todo-text)
-                          (reset! open-todo-selector false))))
+                          (swap! state/block-meta assoc-in [block-id "todo-text"] new-todo-text)))
+                      (reset! open-todo-selector false))
              .child
              (m/Container
               .padding (m/EdgeInsets.symmetric .horizontal 12 .vertical 8)
