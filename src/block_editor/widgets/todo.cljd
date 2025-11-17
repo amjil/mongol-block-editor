@@ -9,9 +9,9 @@
 (defn todo-selector-popup []
   (f/widget
    :context ctx
-   :let [width (-> m/MediaQuery (.of ctx) .-size .-width)]
+   :let [width (-> m/MediaQuery (.of ctx) .-size .-width)
+         block-id @state/current-id]
    :watch [open? open-todo-selector
-           block-id (f/$ (f/<! state/current-id))
            todo-text (f/$ (get-in (f/<! state/block-meta) [block-id "todo-text"]))]
    (if open?
      (f/widget
@@ -21,6 +21,7 @@
        .children
        [(m/GestureDetector
          .onTap (fn []
+                  (dart:core/print "in todo-selector-popup ---")
                   (reset! open-todo-selector false))
          .child
          (m/Container
@@ -29,88 +30,83 @@
           .height (-> m/MediaQuery (.of ctx) .-size .-height)))
         (m/Center
          .child
-         (m/GestureDetector
-          .onTap (fn [] nil)
+         (m/Container
+          .padding (m/EdgeInsets.all 20)
+          .decoration (m/BoxDecoration
+                       .color (m/Color.fromARGB 255 45 45 45)
+                       .borderRadius (m/BorderRadius.circular 16)
+                       .boxShadow [(m/BoxShadow
+                                    .color (m/Color.fromARGB 150 0 0 0)
+                                    .blurRadius 24
+                                    .offset (m/Offset. 0 10)
+                                    .spreadRadius 2)])
           .child
-          (m/Container
-           .padding (m/EdgeInsets.all 20)
-           .decoration (m/BoxDecoration
-                        .color (m/Color.fromARGB 255 45 45 45)
-                        .borderRadius (m/BorderRadius.circular 16)
-                        .boxShadow [(m/BoxShadow
-                                     .color (m/Color.fromARGB 150 0 0 0)
-                                     .blurRadius 24
-                                     .offset (m/Offset. 0 10)
-                                     .spreadRadius 2)])
-           .child
-           (m/Row
-            .mainAxisSize m/MainAxisSize.min
-            .children
-            [(m/GestureDetector
-              .onTap (fn []
-                       (when block-id
-                         (let [current-meta (or (state/get-block-meta block-id) {})
-                               new-todo-text (if (= "doing" todo-text) nil "doing")]
-                           (state/set-block-meta! block-id (assoc current-meta "todo-text" new-todo-text))
-                           (reset! open-todo-selector false))))
+          (m/Row
+           .mainAxisSize m/MainAxisSize.min
+           .children
+           [(m/GestureDetector
+             .onTap (fn []
+                      (when block-id
+                        (let [new-todo-text (if (= "doing" todo-text) nil "doing")]
+                          (swap! state/block-meta assoc-in [block-id "todo-text"] new-todo-text)
+                          (reset! open-todo-selector false))))
+             .child
+             (m/Container
+              .padding (m/EdgeInsets.symmetric .horizontal 12 .vertical 8)
+              .decoration (m/BoxDecoration
+                           .color (if (= "doing" todo-text)
+                                    (m/Color.fromARGB 100 100 181 246)
+                                    (m/Color.fromARGB 50 255 255 255))
+                           .borderRadius (m/BorderRadius.circular 8)
+                           .border (if (= "doing" todo-text)
+                                     (m/Border.all
+                                      .color (m/Color.fromARGB 255 100 181 246)
+                                      .width 2)
+                                     (m/Border.all
+                                      .color (m/Color.fromARGB 100 255 255 255)
+                                      .width 1)))
               .child
-              (m/Container
-               .padding (m/EdgeInsets.symmetric .horizontal 12 .vertical 8)
-               .decoration (m/BoxDecoration
-                            .color (if (= "doing" todo-text)
-                                     (m/Color.fromARGB 100 100 181 246)
-                                     (m/Color.fromARGB 50 255 255 255))
-                            .borderRadius (m/BorderRadius.circular 8)
-                            .border (if (= "doing" todo-text)
-                                      (m/Border.all
-                                       .color (m/Color.fromARGB 255 100 181 246)
-                                       .width 2)
-                                      (m/Border.all
-                                       .color (m/Color.fromARGB 100 255 255 255)
-                                       .width 1)))
-               .child
-               (m/Icon
-                m/Icons.radio_button_unchecked
-                .size 20
-                .color (if (= "doing" todo-text)
-                         (m/Color.fromARGB 255 100 181 246)
-                         (m/Color.fromARGB 200 255 255 255)))))
-             (m/SizedBox .width 12)
-             (m/GestureDetector
-              .onTap (fn []
-                       (when block-id
-                         (let [current-meta (or (state/get-block-meta block-id) {})
-                               new-todo-text (if (= "done" todo-text) nil "done")]
-                           (state/set-block-meta! block-id (assoc current-meta "todo-text" new-todo-text))
-                           (reset! open-todo-selector false))))
+              (m/Icon
+               m/Icons.radio_button_unchecked
+               .size 20
+               .color (if (= "doing" todo-text)
+                        (m/Color.fromARGB 255 100 181 246)
+                        (m/Color.fromARGB 200 255 255 255)))))
+            (m/SizedBox .width 12)
+            (m/GestureDetector
+             .onTap (fn []
+                      (when block-id
+                        (let [new-todo-text (if (= "done" todo-text) nil "done")]
+                          (swap! state/block-meta assoc [block-id "todo-text"] new-todo-text)
+                          (reset! open-todo-selector false))))
+             .child
+             (m/Container
+              .padding (m/EdgeInsets.symmetric .horizontal 12 .vertical 8)
+              .decoration (m/BoxDecoration
+                           .color (if (= "done" todo-text)
+                                    (m/Color.fromARGB 100 76 175 80)
+                                    (m/Color.fromARGB 50 255 255 255))
+                           .borderRadius (m/BorderRadius.circular 8)
+                           .border (if (= "done" todo-text)
+                                     (m/Border.all
+                                      .color (m/Color.fromARGB 255 76 175 80)
+                                      .width 2)
+                                     (m/Border.all
+                                      .color (m/Color.fromARGB 100 255 255 255)
+                                      .width 1)))
               .child
-              (m/Container
-               .padding (m/EdgeInsets.symmetric .horizontal 12 .vertical 8)
-               .decoration (m/BoxDecoration
-                            .color (if (= "done" todo-text)
-                                     (m/Color.fromARGB 100 76 175 80)
-                                     (m/Color.fromARGB 50 255 255 255))
-                            .borderRadius (m/BorderRadius.circular 8)
-                            .border (if (= "done" todo-text)
-                                      (m/Border.all
-                                       .color (m/Color.fromARGB 255 76 175 80)
-                                       .width 2)
-                                      (m/Border.all
-                                       .color (m/Color.fromARGB 100 255 255 255)
-                                       .width 1)))
-               .child
-               (m/Icon
-                m/Icons.check_circle_outline
-                .size 20
-                .color (if (= "done" todo-text)
-                         (m/Color.fromARGB 255 76 175 80)
-                         (m/Color.fromARGB 200 255 255 255)))))]))))]))
+              (m/Icon
+               m/Icons.check_circle_outline
+               .size 20
+               .color (if (= "done" todo-text)
+                        (m/Color.fromARGB 255 76 175 80)
+                        (m/Color.fromARGB 200 255 255 255)))))])))]))
      (m/SizedBox))))
 
 (defn todo [{:keys [index]}]
   (f/widget
-   :watch [block-id (f/$ (f/<! state/current-id))
-           todo-text (f/$ (get-in (f/<! state/block-meta) [block-id "todo-text"]))]
+   :let [block-id (get @state/ids index)]
+   :watch [todo-text (f/$ (get-in (f/<! state/block-meta) [block-id "todo-text"]))]
    (m/ReorderableDragStartListener
     .index index
     .child
@@ -122,6 +118,7 @@
               .size 18
               .color (m/Color.fromARGB 255 100 181 246))
        .onPressed (fn []
+                    (reset! state/current-id block-id)
                     (reset! open-todo-selector true)))
 
       (= "done" todo-text)
@@ -131,6 +128,7 @@
               .size 18
               .color (m/Color.fromARGB 255 76 175 80))
        .onPressed (fn []
+                    (reset! state/current-id block-id)
                     (reset! open-todo-selector true)))
 
       :else

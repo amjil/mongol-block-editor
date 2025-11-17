@@ -31,7 +31,6 @@
            theme (-> m/Theme (.of ctx))]
      :watch [block-content (f/$ (get (f/<! state/blocks) block-id))
              is-todo (f/$ (get-in (f/<! state/block-meta) [block-id "todo"]))
-             todo-text (f/$ (get-in (f/<! state/block-meta) [block-id "todo-text"]))
              level (f/$ (get (f/<! state/levels) block-id 0))
              eidx (f/$ (f/<! state/edit-index))]
      :let [is-editing (= eidx idx)
