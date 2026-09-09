@@ -1,6 +1,6 @@
 (ns block-editor.utils.html
   "Bidirectional HTML fragment ↔ editor state.
-   Export skips `:image`. Wiki `[[links]]` ↔ `<a>`; `#tags` left as plain text.
+   `:image` blocks export/import as `<img src>`. Wiki `[[links]]` ↔ `<a>`; `#tags` left as plain text.
    Host apps need the Dart `html` package (see example/pubspec.yaml)."
   (:require ["package:html/parser.dart" :as html-parser]
             ["package:html/dom.dart" :as html-dom]
@@ -158,7 +158,13 @@
         inner (block-inner-html block opts)]
     (case b-type
       :image
-      ""
+      (let [url (or (get-in block [:data :url]) (:url block) "")
+            alt (or (:content block) "")]
+        (if (str/blank? url)
+          ""
+          (str "<img src=\"" (escape-html url) "\""
+               (when (seq alt) (str " alt=\"" (escape-html alt) "\""))
+               ">")))
 
       :heading-1
       (nest-children (str "<h1>" inner "</h1>") blocks child-ids opts)
@@ -277,7 +283,7 @@
 
 (def ^:private block-level-tags
   #{"p" "h1" "h2" "h3" "h4" "h5" "h6" "blockquote" "ul" "ol" "li"
-    "div" "aside" "details" "pre" "hr" "table" "section" "article"
+    "div" "aside" "details" "pre" "hr" "img" "table" "section" "article"
     "header" "footer" "nav" "main"})
 
 ;; Non-content tags whose text must never become editor content
@@ -366,7 +372,7 @@
              nodes* (child-nodes node)]
          (case tag
            ("style" "script" "head" "meta" "link" "noscript"
-            "template" "title" "base")
+            "template" "title" "base" "img")
            acc
 
            "br"
@@ -525,9 +531,19 @@
   [^html-dom/Element el parent-id opts]
   (let [tag (tag-name el)]
     (cond
-      ;; Skip non-content / media that must not become text blocks
-      (or (contains? skip-tags tag) (= "img" tag))
+      ;; Skip non-content tags whose text must never become editor content
+      (contains? skip-tags tag)
       {:ids [] :blocks {}}
+
+      (= "img" tag)
+      (let [id (new-block-id)
+            url (or (attr el "src") "")
+            alt (attr el "alt")
+            block (make-block id :image parent-id
+                              {:content (or alt "") :content-spans []}
+                              []
+                              (when (seq url) {:url url}))]
+        {:ids [id] :blocks {id block}})
 
       (= "hr" tag)
       (let [id (new-block-id)]
@@ -729,7 +745,7 @@
 
 (defn export-to-html
   "Export editor `state` (`:root` + `:blocks`) to an HTML fragment string.
-   Skips `:image` blocks. Does not emit a full HTML document.
+   Image blocks become `<img src=\"...\">`. Does not emit a full HTML document.
 
    Opts:
    - `:link-href`  `(fn [page-name] -> href)` for `[[wikilinks]]`
